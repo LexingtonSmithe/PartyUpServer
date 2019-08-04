@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const preferencesSchema = new Schema({
-    user: Number,
+    username: String,
     systems: String,
     device: String,
     role: String,

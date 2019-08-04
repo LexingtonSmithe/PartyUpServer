@@ -1,3 +1,4 @@
 {
-    1: "User Already Exists"
+    1: "User Already Exists",
+    2: "User does not exist"
 }
