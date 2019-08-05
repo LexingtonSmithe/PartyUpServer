@@ -1,4 +1,37 @@
 {
-    1: "User Already Exists",
-    2: "User does not exist"
+    0: {
+        "Message": "An Unknown Error Occurred",
+        "Log": "An Error Code was used that did not have an error message!",
+        "Level": "ERROR"
+        },
+    1: {
+        "Message": "User Already Exists",
+        "Log": "User attempted to create account with username that already existed",
+        "Level": "INFO"
+        },
+    2: {
+        "Message": "User does not exist",
+        "Log": "Attempted to "
+        "Level": "INFO"
+        },
+    3: {
+        "Message": "Something went wrong, please try again later",
+        "Log": "Error when attempting to save create user with valid user details",
+        "Level": "ERROR"
+        },
+    4: {
+        "Message": "Something went wrong, please try again later",
+        "Log": "Error when attempting to save valid user preferences",
+        "Level": "ERROR"
+        },
+    5: {
+        "Message": "Username and/or Password supplied is incorrect",
+        "Log": "User attempted to login with invalid username",
+        "Level": "ERROR"
+        },
+    6: {
+        "Message": "Username and/or Password supplied is incorrect",
+        "Log": "User attempted to login with invalid password",
+        "Level": "ERROR"
+        },
 }

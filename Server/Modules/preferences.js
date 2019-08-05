@@ -43,6 +43,9 @@ exports.UpsertPreferences = function(req, res) {
             utils.Log('INFO', 'Searching For Preferences: ' + req.params.username);
             var query = Preferences.where({username: req.params.username})
             query.findOne(async function(err, response){
+                if(err){
+                    utils.Error(2, err)
+                }
                 if(response){
                     //utils.Log('INFO', response)
                     utils.Log('INFO', 'Preferences Found, Updating');
@@ -66,7 +69,7 @@ exports.UpsertPreferences = function(req, res) {
                     } else {
                         res.json({
                             "Status": "Error",
-                            "Message": "Unable to update record"
+                            "Error" : utils.Error(1);
                         })
                     }
 
@@ -85,8 +88,10 @@ exports.UpsertPreferences = function(req, res) {
                     newPreferences.distance = req.body.distance;
                     newPreferences.save(function(err, addedPreferences){
                         if(err){
-                            utils.Log('INFO', err);
-                            utils.Log('INFO', "Failed to add preferences");
+                            res.json({
+                                "Status": "Error",
+                                "Error": utils.Error(4, err);,
+                            });
                         } else {
                             res.json(addedPreferences);
                             utils.Log('INFO', "Preferences added successfully");

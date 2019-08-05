@@ -14,15 +14,13 @@ exports.CreateUser = function(req, res){
     User.findOne({username: req.body.username}, function(err, user){
         utils.Log('INFO', "Checking for user: " + req.body.username);
         if(err){
-            utils.Log('ERROR', err)
+            utils.Error(2, err)
         }
         if(user){
             utils.Log('INFO', "Found User: " + req.body.username)
             res.json({
                 "Status": "Error",
-                "Error Code": 1,
-                "Message": "User with this username already exists, please enter a new username"
-
+                "Error": utils.Error(1),
             })
         } else {
             utils.Log('INFO', "No user found, creating user");
@@ -52,10 +50,12 @@ exports.CreateUser = function(req, res){
             newUser.last_search = null;
             newUser.save(function(err, addedUser) {
               if(err){
-                utils.Log('ERROR', 'Error creating the user');
-                utils.Log('ERROR', err);
+                  res.json({
+                      "Status": "Error",
+                      "Error": utils.Error(3, err)
+                  });
               } else {
-                  utils.Log('INFO', 'User created successfully');
+                utils.Log('INFO', 'User created successfully');
                 res.json({
                     "Status": "Success",
                     "Message": "Created User",
@@ -69,14 +69,21 @@ exports.CreateUser = function(req, res){
     })
 }
 
-exports.UserLogin = function(username, password){
-    if(CheckUserExists(username)){
-        // decrypt password
-        var decrypted_password = exports.DecryptPassword(username, password);
-        // validate password
-        if(ValidatePassword(username, decrypted_password)){
+exports.UserLogin = function(req, res){
+    if(CheckUserExists(req.params.username)){
+        if(ValidatePassword(req.params.username, req.params.password)){
             var access_token = exports.CreateAccessToken(username);
-        };
+        } else {
+            res.json({
+                "Status": "Error",
+                "Error": utils.Error(6, err)
+            })
+        }
+    } else {
+        res.json({
+            "Status": "Error",
+            "Error": utils.Error(5, err)
+        })
     }
     return access_token;
 }
@@ -91,18 +98,6 @@ exports.UserAuthentication = function(username, access_token){
     return result;
 }
 
-function GenerateUserID(){
-    var uuid = uuidv1();
-    User.findOne({user_id: uuid}, function(err, user){
-        if(err){
-            utils.Log('ERROR', err);
-        }
-        if(user){
-            utils.Log('INFO', "User already exists with UUID: " + uuid);
-        }
-    })
-    return uuid;
-}
 
 exports.EncryptPassword = function(password){
     var mykey = crypto.createCipher('aes-128-cbc', config.passwordEncryptionKey);
@@ -141,7 +136,7 @@ exports.CreateAccessToken = function(username){
 }
 
 exports.ValidateAccessToken = function (username, access_token){
-    var decrypted_token = exports.DecryptAccessToken(username, access_token)
+    var decrypted_token = exports.DecryptAccessToken(access_token)
     var used_secret = decrypted_token.substr(0,7);
     var used_date = decrypted_token.substr(8,16); // todo get date string length
     var used_username = decrypted_token.substr(17,access_token.length);
@@ -159,7 +154,7 @@ function CheckUserExists(username){
     utils.Log('INFO', "Checking for user: " + username);
     User.findOne({username: username}, function(err, user){
         if(err){
-            utils.Log('INFO', err)
+            utils.Log('ERROR', err)
         }
         if(user){
             utils.Log('INFO', "Found User: " + username)
@@ -174,8 +169,22 @@ function CheckUserExists(username){
 
 function GetLastLoginDate(username){
 
+
 }
 
 function ValidatePassword(username, password){
 
+}
+
+function GenerateUserID(){
+    var uuid = uuidv1();
+    User.findOne({user_id: uuid}, function(err, user){
+        if(err){
+            utils.Log('ERROR', err);
+        }
+        if(user){
+            utils.Log('INFO', "User already exists with UUID: " + uuid);
+        }
+    })
+    return uuid;
 }
