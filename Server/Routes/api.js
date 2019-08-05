@@ -7,6 +7,7 @@ const config = require('../../config.json');
 // internal
 const preferences = require('../Modules/preferences');
 const user = require('../Modules/user');
+const utils = require('../Modules/utils');
 
 // local
 mongoose.Promise = global.Promise;
@@ -14,9 +15,9 @@ module.exports = router;
 
 mongoose.connect(config.mongoURL, {useNewUrlParser: true}, function(err){
   if(err){
-    console.log('Connection Error');
+    utils.Log('INFO', 'Connection Error');
   } else {
-    console.log('Connected to MongoDB');
+    utils.Log('INFO', 'Connected to MongoDB');
   }
 })
 
@@ -27,24 +28,30 @@ mongoose.connect(config.mongoURL, {useNewUrlParser: true}, function(err){
 
 
 router.post('/user', function(req, res){
-  console.log('Adding User: ' + req.body.username);
-  user.createUser(req, res);
+  utils.Log('INFO', 'Adding User: ' + req.body.username);
+  user.CreateUser(req, res);
 });
+
+router.post('/user/login', function(req, res){
+  utils.Log('INFO', 'Logging In: ' + req.params.username);
+  user.UserLogin(req, res);
+});
+
 
 
 router.get('/preferences/:username', function(req, res){
-    console.log('Requesting Preferences');
-    preferences.getPreferences(req, res);
+    utils.Log('INFO', 'Requesting Preferences');
+    preferences.GetPreferences(req, res);
 });
 
 router.post('/preferences/:username', function(req, res){
-    preferences.upsertPreferences(req, res);
+    preferences.UpsertPreferences(req, res);
 });
 
 
 router.get('/health', async function(req, res){
     var db = "Not Connected";
-    console.log("Health Checked");
+    utils.Log('INFO', "Health Checked");
     if(mongoose.connection.readyState == 1){
         db = {
             name: mongoose.connection.name,

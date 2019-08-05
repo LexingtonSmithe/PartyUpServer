@@ -4,19 +4,20 @@ const mongoose = require('mongoose');
 const uuidv1 = require('uuid/v1');
 // internal
 const config = require('../../config.json');
+const utils = require('../Modules/utils');
 const User = require('../Models/user');
 // local
 var exports = module.exports = {};
 var secret = config.secret;
 
-exports.createUser = function(req, res){
+exports.CreateUser = function(req, res){
     User.findOne({username: req.body.username}, function(err, user){
-        console.log("Checking for user: " + req.body.username);
+        utils.Log('INFO', "Checking for user: " + req.body.username);
         if(err){
-            console.log(err)
+            utils.Log('ERROR', err)
         }
         if(user){
-            console.log("Found User: " + req.body.username)
+            utils.Log('INFO', "Found User: " + req.body.username)
             res.json({
                 "Status": "Error",
                 "Error Code": 1,
@@ -24,12 +25,12 @@ exports.createUser = function(req, res){
 
             })
         } else {
-            console.log("No user found, creating user");
+            utils.Log('INFO', "No user found, creating user");
             var newUser = new User();
             newUser.user_id = GenerateUserID();
             newUser.username = req.body.username;
             newUser.display_name = req.body.display_name;
-            newUser.password = req.body.password;
+            newUser.password = exports.EncryptPassword(req.body.password); // once we have something that sends us encrypted passwords we should remove this
             newUser.name = {
                 first_name : req.body.name.first_name,
                 last_name : req.body.name.last_name
@@ -51,14 +52,14 @@ exports.createUser = function(req, res){
             newUser.last_search = null;
             newUser.save(function(err, addedUser) {
               if(err){
-                console.log('Error creating the user');
-                console.log(err);
+                utils.Log('ERROR', 'Error creating the user');
+                utils.Log('ERROR', err);
               } else {
-                  console.log('User created successfully');
+                  utils.Log('INFO', 'User created successfully');
                 res.json({
                     "Status": "Success",
                     "Message": "Created User",
-                    "Token": CreateAccessToken(addedUser.username),
+                    "Token": exports.CreateAccessToken(addedUser.username),
                     "Data": addedUser
                 });
               }
@@ -68,73 +69,79 @@ exports.createUser = function(req, res){
     })
 }
 
-exports.userLogin = function(username, password){
+exports.UserLogin = function(username, password){
     if(CheckUserExists(username)){
         // decrypt password
-        var decrypted_password = DecryptPassword(username,password);
+        var decrypted_password = exports.DecryptPassword(username, password);
         // validate password
         if(ValidatePassword(username, decrypted_password)){
-            var access_token = CreateAccessToken(username);
+            var access_token = exports.CreateAccessToken(username);
         };
     }
     return access_token;
 }
 
-exports.userAuthentication = function(username, access_token){
-    // decrypt access_token
-    var decrypted_token = DecryptAccessToken(username, access_token);
-    // validate access_token
-    if(ValidateAccessToken(decrypted_token)){
+exports.UserAuthentication = function(username, access_token){
+    var decrypted_token = exports.DecryptAccessToken(access_token);
+    if(ValidateAccessToken(username, decrypted_token)){
         var result = true;
     } else {
         var result = false;
     }
-    return result
+    return result;
 }
 
 function GenerateUserID(){
     var uuid = uuidv1();
     User.findOne({user_id: uuid}, function(err, user){
         if(err){
-            console.log(err);
+            utils.Log('ERROR', err);
         }
         if(user){
-            console.log("User already exists with UUID: " + uuid);
+            utils.Log('INFO', "User already exists with UUID: " + uuid);
         }
     })
     return uuid;
 }
 
-function DecryptPassword(username, password){
-    var mykey = crypto.createDecipher('aes-128-cbc', username);
+exports.EncryptPassword = function(password){
+    var mykey = crypto.createCipher('aes-128-cbc', config.passwordEncryptionKey);
+    var encryptedPassword = mykey.update(password, 'utf8', 'hex')
+    encryptedPassword += mykey.final('hex');
+    return encryptedPassword;
+}
+
+exports.DecryptPassword = function(password){
+    var mykey = crypto.createDecipher('aes-128-cbc', config.passwordEncryptionKey);
     var decryptedPassword = mykey.update(password, 'hex', 'utf8')
     decryptedPassword += mykey.final('utf8');
     return decryptedPassword;
 }
 
-function DecryptAccessToken(username, access_token){
-    var mykey = crypto.createDecipher('aes-128-cbc', username);
+exports.DecryptAccessToken = function(access_token){
+    var mykey = crypto.createDecipher('aes-128-cbc', config.accessTokenEncryptionKey);
     var decryptedAccessToken = mykey.update(access_token, 'hex', 'utf8')
     decryptedAccessToken += mykey.final('utf8');
     return decryptedAccessToken;
 }
 
-function CreateAccessToken(username){
+exports.CreateAccessToken = function(username){
     var temp_token = "";
+    var date = Date.now();
     temp_token += secret;
-    temp_token +=  Date.now();
+    temp_token += date;
     temp_token += username;
+    // make sure what we're setting in the access key is also what we scheck against in the db
+    User.where({username: username}).update({last_login: date});
 
-    var mykey = crypto.createCipher('aes-128-cbc', 'mypassword');
+    var mykey = crypto.createCipher('aes-128-cbc', config.accessTokenEncryptionKey);
     var access_token = mykey.update(temp_token, 'utf8', 'hex')
     access_token += mykey.final('hex');
-    console.log(temp_token);
-    console.log(access_token);
     return access_token;
 }
 
-exports.validateAccessToken = function (username, access_token){
-    var decrypted_token = DecryptAccessToken(username, access_token)
+exports.ValidateAccessToken = function (username, access_token){
+    var decrypted_token = exports.DecryptAccessToken(username, access_token)
     var used_secret = decrypted_token.substr(0,7);
     var used_date = decrypted_token.substr(8,16); // todo get date string length
     var used_username = decrypted_token.substr(17,access_token.length);
@@ -148,17 +155,17 @@ exports.validateAccessToken = function (username, access_token){
     return result;
 }
 
-async function CheckUserExists(username){
-    console.log("Checking for user: " + username);
+function CheckUserExists(username){
+    utils.Log('INFO', "Checking for user: " + username);
     User.findOne({username: username}, function(err, user){
         if(err){
-            console.log(err)
+            utils.Log('INFO', err)
         }
         if(user){
-            console.log("Found User: " + username)
+            utils.Log('INFO', "Found User: " + username)
             return true;
         } else {
-            console.log("User Not Found");
+            utils.Log('INFO', "User Not Found");
             return false;
         }
     })

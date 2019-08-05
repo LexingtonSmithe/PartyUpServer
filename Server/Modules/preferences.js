@@ -2,18 +2,19 @@
 const mongoose = require('mongoose');
 // internal
 const config = require('../../config.json');
-var preferencesList = require('../Data/preferences');
+const utils = require('../Modules/utils');
 const Preferences = require('../Models/preferences');
 const User = require('../Models/user');
+var preferencesList = require('../Data/preferences');
 // local
 var exports = module.exports = {};
 
-exports.getPreferences = function(req, res) {
+exports.GetPreferences = function(req, res) {
     var query = Preferences.where({username: req.params.username})
     query.findOne(function(err, response){
       if(response){
-          //console.log(response);
-          console.log("Preferences Found: Adding Preset Values");
+          //utils.Log('INFO', response);
+          utils.Log('INFO', "Preferences Found: Adding Preset Values");
           preferencesList.systems.default = response.systems;
           preferencesList.role.default = response.role;
           preferencesList.days_free.default = response.days_free;
@@ -23,7 +24,7 @@ exports.getPreferences = function(req, res) {
           preferencesList.age.default = response.age;
           preferencesList.distance.default = response.distance;
       } else {
-          console.log("No Preferences Found");
+          utils.Log('INFO', "No Preferences Found");
       }
       res.json({
           "Status": "Success",
@@ -33,18 +34,18 @@ exports.getPreferences = function(req, res) {
     });
 }
 
-exports.upsertPreferences = function(req, res) {
+exports.UpsertPreferences = function(req, res) {
     User.findOne({username: req.params.username}, function(err, result){
         if(err){
-            console.log(err)
+            utils.Log('INFO', err)
         }
         if(result){
-            console.log('Searching For Preferences: ' + req.params.username);
+            utils.Log('INFO', 'Searching For Preferences: ' + req.params.username);
             var query = Preferences.where({username: req.params.username})
             query.findOne(async function(err, response){
                 if(response){
-                    //console.log(response)
-                    console.log('Preferences Found, Updating');
+                    //utils.Log('INFO', response)
+                    utils.Log('INFO', 'Preferences Found, Updating');
                     var data = {
                         username: req.params.username,
                         systems : req.body.systems,
@@ -70,8 +71,8 @@ exports.upsertPreferences = function(req, res) {
                     }
 
                 } else {
-                    console.log("No Preferences Found")
-                    console.log("Adding Preferences");
+                    utils.Log('INFO', "No Preferences Found")
+                    utils.Log('INFO', "Adding Preferences");
                     var newPreferences = new Preferences();
                     newPreferences.username = req.params.username;
                     newPreferences.systems = req.body.systems;
@@ -84,11 +85,11 @@ exports.upsertPreferences = function(req, res) {
                     newPreferences.distance = req.body.distance;
                     newPreferences.save(function(err, addedPreferences){
                         if(err){
-                            console.log(err);
-                            console.log("Failed to add preferences");
+                            utils.Log('INFO', err);
+                            utils.Log('INFO', "Failed to add preferences");
                         } else {
                             res.json(addedPreferences);
-                            console.log("Preferences added successfully");
+                            utils.Log('INFO', "Preferences added successfully");
                         }
                     })
                 }
