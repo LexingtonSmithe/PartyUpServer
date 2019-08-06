@@ -4,7 +4,7 @@ var expect = require('Chai').expect;
 const user = require('../Server/Modules/user');
 const config = require('../config.json');
 
-describe('User Tests', function() {
+describe('User Unit Tests', function() {
   it('Should Encrypt the password', function (done) {
       var password = "password";
       var encryptedPassword = "92bc9d1aba93853520b2a2fee4041718"

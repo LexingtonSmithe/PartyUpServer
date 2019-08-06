@@ -30,23 +30,23 @@ mongoose.connect(config.mongoURL, {useNewUrlParser: true}, function(err){
 
 
 router.post('/user', function(req, res){
-  utils.Log('INFO', 'Adding User: ' + req.body.username);
+  Log('INFO', 'Adding User: ' + req.body.username);
   user.CreateUser(req, res);
 });
 
 router.post('/user/login', function(req, res){
-  utils.Log('INFO', 'Logging In: ' + req.params.username);
+  Log('INFO', 'Logging In: ' + req.params.username);
   user.UserLogin(req, res);
 });
 
 
 router.get('/preferences/list', function(req, res){
-    utils.Log('INFO', 'Requesting Preferences');
+    Log('INFO', 'Requesting Preferences');
     preferences.GetPreferencesList(req, res);
 });
 
 router.get('/preferences/:username', function(req, res){
-    utils.Log('INFO', 'Requesting Preferences');
+    Log('INFO', 'Requesting Preferences');
     preferences.GetPreferences(req, res);
 });
 
