@@ -2,53 +2,86 @@
 const mongoose = require('mongoose');
 // internal
 const config = require('../../config.json');
-const utils = require('../Modules/utils');
 const Preferences = require('../Models/preferences');
 const User = require('../Models/user');
+const Utils = require('../Modules/utils');
+const Log() = Utils.Log;
+const Error() = Utils.Error;
 var preferencesList = require('../Data/preferences');
 // local
 var exports = module.exports = {};
 
+exports.GetPreferencesList = function(req, res) {
+    var query = Preferences.where({username: req.params.username})
+    query.findOne(function(err, response){
+        if(err){
+            res.status(500).json({
+                "Status": "Error",
+                "Error": Error(8, err)
+            })
+        }
+        if(response){
+            //utils.Log('INFO', response);
+            Log('INFO', "Preferences Found: Adding Preset Values");
+            preferencesList.systems.default = response.systems;
+            preferencesList.role.default = response.role;
+            preferencesList.days_free.default = response.days_free;
+            preferencesList.times_free.default_start_time = response.times_free_start;
+            preferencesList.times_free.default_end_time = response.times_free_end;
+            preferencesList.party_size.default = response.party_size;
+            preferencesList.age.default = response.age;
+            preferencesList.distance.default = response.distance;
+        } else {
+            Log('INFO', "No Preferences Found");
+        }
+        res.json({
+            "Status": "Success",
+            "Message": "User preferences not found",
+            "Data": preferencesList
+        })
+    });
+}
+
 exports.GetPreferences = function(req, res) {
     var query = Preferences.where({username: req.params.username})
     query.findOne(function(err, response){
-      if(response){
-          //utils.Log('INFO', response);
-          utils.Log('INFO', "Preferences Found: Adding Preset Values");
-          preferencesList.systems.default = response.systems;
-          preferencesList.role.default = response.role;
-          preferencesList.days_free.default = response.days_free;
-          preferencesList.times_free.default_start_time = response.times_free_start;
-          preferencesList.times_free.default_end_time = response.times_free_end;
-          preferencesList.party_size.default = response.party_size;
-          preferencesList.age.default = response.age;
-          preferencesList.distance.default = response.distance;
-      } else {
-          utils.Log('INFO', "No Preferences Found");
-      }
-      res.json({
-          "Status": "Success",
-          "Message": "User preferences not found",
-          "Data": preferencesList
-      })
+        if(err){
+            res.status(500)json({
+                "Status": "Error",
+                "Error": Error(8, err);
+            })
+        }
+        if(response){
+            res.json({
+              "Status": "Success",
+              "Message": "User preferences found",
+              "Data": response
+            })
+        } else {
+            res.json({
+              "Status": "Error",
+              "Error": Error(9, err);
+            })
+          })
+        }
     });
 }
 
 exports.UpsertPreferences = function(req, res) {
     User.findOne({username: req.params.username}, function(err, result){
         if(err){
-            utils.Log('INFO', err)
+            Error(8, err);
         }
         if(result){
-            utils.Log('INFO', 'Searching For Preferences: ' + req.params.username);
+            Log('INFO', 'Searching For Preferences: ' + req.params.username);
             var query = Preferences.where({username: req.params.username})
             query.findOne(async function(err, response){
                 if(err){
-                    utils.Error(2, err)
+                    Error(8, err);
                 }
                 if(response){
                     //utils.Log('INFO', response)
-                    utils.Log('INFO', 'Preferences Found, Updating');
+                    Log('INFO', 'Preferences Found, Updating');
                     var data = {
                         username: req.params.username,
                         systems : req.body.systems,
@@ -63,19 +96,19 @@ exports.UpsertPreferences = function(req, res) {
                     var update = await Preferences.replaceOne({ _id: response._id }, data);
                     if(update.nModified == 1){
                         res.json({
-                            "Updated": "Success",
+                            "Status": "Success",
+                            "Message": "Successfully updated user preferences",
                             "Data": data
                         })
                     } else {
-                        res.json({
+                        res.status(500).json({
                             "Status": "Error",
-                            "Error" : utils.Error(1);
+                            "Error" : Error(1);
                         })
                     }
-
                 } else {
-                    utils.Log('INFO', "No Preferences Found")
-                    utils.Log('INFO', "Adding Preferences");
+                    Log('INFO', "No Preferences Found")
+                    Log('INFO', "Adding Preferences");
                     var newPreferences = new Preferences();
                     newPreferences.username = req.params.username;
                     newPreferences.systems = req.body.systems;
@@ -88,13 +121,17 @@ exports.UpsertPreferences = function(req, res) {
                     newPreferences.distance = req.body.distance;
                     newPreferences.save(function(err, addedPreferences){
                         if(err){
-                            res.json({
+                            res.status(500).json({
                                 "Status": "Error",
-                                "Error": utils.Error(4, err);,
+                                "Error": Error(4, err);,
                             });
                         } else {
-                            res.json(addedPreferences);
-                            utils.Log('INFO', "Preferences added successfully");
+                            Log('INFO', "Preferences added successfully");
+                            res.json({
+                                "Status": "Success",
+                                "Message": "Successfully updated user preferences",
+                                "Data": addedPreferences
+                            })
                         }
                     })
                 }

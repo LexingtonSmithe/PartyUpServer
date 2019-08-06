@@ -10,8 +10,8 @@
         "Level": "INFO"
         },
     2: {
-        "Message": "User does not exist",
-        "Log": "Attempted to "
+        "Message": "Unable to find user matching that username",
+        "Log": "Failed to find a user with specified username",
         "Level": "INFO"
         },
     3: {
@@ -34,4 +34,19 @@
         "Log": "User attempted to login with invalid password",
         "Level": "ERROR"
         },
+    7: {
+        "Message": "Database connection is currently down",
+        "Log": "Error connecting to the database",
+        "Level": "ERROR"
+    },
+    8: {
+        "Message": "Error when attempting to retrieve selected data",
+        "Log": "Error when attempting to run findOne query",
+        "Level": "ERROR"
+    },
+    9: {
+        "Message": "Unable to find any preferences for user matching that username",
+        "Log": "Unable to find preferences for user",
+        "Level": "INFO"
+    }
 }

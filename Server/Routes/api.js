@@ -7,7 +7,9 @@ const config = require('../../config.json');
 // internal
 const preferences = require('../Modules/preferences');
 const user = require('../Modules/user');
-const utils = require('../Modules/utils');
+const Utils = require('../Modules/utils');
+const Log() = Utils.Log;
+const Error() = Utils.Error;
 
 // local
 mongoose.Promise = global.Promise;
@@ -15,9 +17,9 @@ module.exports = router;
 
 mongoose.connect(config.mongoURL, {useNewUrlParser: true}, function(err){
   if(err){
-    utils.Log('INFO', 'Connection Error');
+    Error(7, err);
   } else {
-    utils.Log('INFO', 'Connected to MongoDB');
+    Log('INFO', 'Connected to MongoDB');
   }
 })
 
@@ -38,6 +40,10 @@ router.post('/user/login', function(req, res){
 });
 
 
+router.get('/preferences/list', function(req, res){
+    utils.Log('INFO', 'Requesting Preferences');
+    preferences.GetPreferencesList(req, res);
+});
 
 router.get('/preferences/:username', function(req, res){
     utils.Log('INFO', 'Requesting Preferences');
@@ -48,7 +54,6 @@ router.post('/preferences/:username', function(req, res){
     preferences.UpsertPreferences(req, res);
 });
 
-
 router.get('/health', async function(req, res){
     var db = "Not Connected";
     utils.Log('INFO', "Health Checked");
@@ -57,11 +62,15 @@ router.get('/health', async function(req, res){
             name: mongoose.connection.name,
             state: "Connected"
         }
+        res.json({
+                "Status": "OK",
+                "Message": "Everything seems tickety-boo",
+                "Database": db
+        })
+    } else {
+        res.json({
+                "Status": "Error",
+                "Error": Error(7),
+        });
     }
-    res.json(
-        {
-            "message": "Server Is Up",
-            "database": db,
-        }
-    )
 })

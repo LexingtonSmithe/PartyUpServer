@@ -4,26 +4,27 @@ const mongoose = require('mongoose');
 const uuidv1 = require('uuid/v1');
 // internal
 const config = require('../../config.json');
-const utils = require('../Modules/utils');
 const User = require('../Models/user');
+const Utils = require('../Modules/utils');
+const Log() = Utils.Log;
+const Error() = Utils.Error;
 // local
 var exports = module.exports = {};
-var secret = config.secret;
 
 exports.CreateUser = function(req, res){
     User.findOne({username: req.body.username}, function(err, user){
-        utils.Log('INFO', "Checking for user: " + req.body.username);
+        Log('INFO', "Checking for user: " + req.body.username);
         if(err){
-            utils.Error(2, err)
+            Error(2, err)
         }
         if(user){
-            utils.Log('INFO', "Found User: " + req.body.username)
+            Log('INFO', "Found User: " + req.body.username)
             res.json({
                 "Status": "Error",
-                "Error": utils.Error(1),
+                "Error": Error(1),
             })
         } else {
-            utils.Log('INFO', "No user found, creating user");
+            Log('INFO', "No user found, creating user");
             var newUser = new User();
             newUser.user_id = GenerateUserID();
             newUser.username = req.body.username;
@@ -50,12 +51,12 @@ exports.CreateUser = function(req, res){
             newUser.last_search = null;
             newUser.save(function(err, addedUser) {
               if(err){
-                  res.json({
+                  res.status(500).json({
                       "Status": "Error",
-                      "Error": utils.Error(3, err)
+                      "Error": Error(3, err)
                   });
               } else {
-                utils.Log('INFO', 'User created successfully');
+                Log('INFO', 'User created successfully');
                 res.json({
                     "Status": "Success",
                     "Message": "Created User",
@@ -76,13 +77,13 @@ exports.UserLogin = function(req, res){
         } else {
             res.json({
                 "Status": "Error",
-                "Error": utils.Error(6, err)
+                "Error": Error(6, err)
             })
         }
     } else {
         res.json({
             "Status": "Error",
-            "Error": utils.Error(5, err)
+            "Error": Error(5, err)
         })
     }
     return access_token;
@@ -141,10 +142,11 @@ exports.ValidateAccessToken = function (username, access_token){
     var used_date = decrypted_token.substr(8,16); // todo get date string length
     var used_username = decrypted_token.substr(17,access_token.length);
 
-    if(used_secret == secret && used_date == GetLastLoginDate(username) && utils.checkDateTimeout(used_date, 3) && CheckUserExists(used_username)){
+    if(used_secret == config.secret && used_date == GetLastLoginDate(username) && Utils.CheckDateTimeout(used_date, config.tokenTimeOut) && CheckUserExists(used_username)){
         var result = true;
     } else {
         var result = false;
+        Log('ERROR', "User attempted to use an invalid access token: " + username);
     }
 
     return result;
@@ -154,13 +156,13 @@ function CheckUserExists(username){
     utils.Log('INFO', "Checking for user: " + username);
     User.findOne({username: username}, function(err, user){
         if(err){
-            utils.Log('ERROR', err)
+            Error(8, err);
         }
         if(user){
-            utils.Log('INFO', "Found User: " + username)
+            Log('INFO', "Found User: " + username)
             return true;
         } else {
-            utils.Log('INFO', "User Not Found");
+            Log('INFO', "User Not Found");
             return false;
         }
     })
@@ -180,10 +182,10 @@ function GenerateUserID(){
     var uuid = uuidv1();
     User.findOne({user_id: uuid}, function(err, user){
         if(err){
-            utils.Log('ERROR', err);
+            Error(8, err);
         }
         if(user){
-            utils.Log('INFO', "User already exists with UUID: " + uuid);
+            Log('INFO', "User already exists with UUID: " + uuid);
         }
     })
     return uuid;
