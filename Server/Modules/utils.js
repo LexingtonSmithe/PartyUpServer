@@ -1,22 +1,16 @@
+// external
+const uuidv1 = require('uuid/v1');
+// internal
 const config = require('../../config.json');
 const errors = require('../Data/Errors');
+// local
 var exports = module.exports = {};
 
-exports.GetDate = function(username, password){
 
 
-}
-
-exports.CheckDateTimeout = function(date, timeout){
-    var todays_date = new Date().now;
-    exports.Log('INFO', todays_date);
-    exports.Log('INFO', date);
-    if(todays_date - date > timeout){
-        var result = true;
-    } else {
-        var result = false;
-    }
-    return result;
+ exports.GenerateUUID = function(){
+    var uuid = uuidv1();
+    return uuid;
 }
 
 exports.Log = function(level, message, data){

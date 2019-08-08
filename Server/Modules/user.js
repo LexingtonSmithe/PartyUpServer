@@ -1,7 +1,7 @@
 // external
 const crypto = require('crypto');
 const mongoose = require('mongoose');
-const uuidv1 = require('uuid/v1');
+
 // internal
 const config = require('../../config.json');
 const User = require('../Models/user');
@@ -176,17 +176,4 @@ function GetLastLoginDate(username){
 
 function ValidatePassword(username, password){
 
-}
-
-function GenerateUserID(){
-    var uuid = uuidv1();
-    User.findOne({user_id: uuid}, function(err, user){
-        if(err){
-            Error(8, err);
-        }
-        if(user){
-            Log('INFO', "User already exists with UUID: " + uuid);
-        }
-    })
-    return uuid;
 }

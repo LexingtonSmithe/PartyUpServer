@@ -21,6 +21,7 @@ exports.SearchForGroups = function(req, res){
 
 // check for groups looking for players
     // check roles free against preferences
+    // check groups party_size limit against users preferences
     // check groups age_range against user preferences
     // check groups location against user preferences (location module)
     // check groups device against user preferences
@@ -30,14 +31,25 @@ exports.SearchForGroups = function(req, res){
 // get all users who have an active search
     // check location against user preferences (location module)
     // check device against user preferences
-    // assign roles against user preferences
     // check age_range against user preferences
     // check days_Free against user preferences (dateTime module)
     // check times_Free against user preferences (dateTime module)
+    // check roles of remaining matches
+        // create list of players
+        // create list of dms
+    // create matched player pair
+        // create composite preferences of pair
+        // check second user from second pair matches composite preferences and delete second pairing
+            // update matched pairing composite preferences
+        // repeat until max_party size limit reached
+    // assigning dm to group
+        // check DM's preferences against matched pairings composite Preferences
+        // create compatibility score
+        // assign DM to group from list with highest compatibilty score
 
 // creating matches
-    // check if same group already exists and ignore pairing
-    // create composite group preferences based around time/system
+    // check if same group already exists and delete match
+    // create composite group preferences
     // create matches
 
 // --------------------------------------------------------------------- end of matching
@@ -45,9 +57,11 @@ exports.SearchForGroups = function(req, res){
 // --------------------------------------------------------------------- start of match management
 
 // get matches that user is a member of
-    // sort by number of other users 'ready' status
     // check if preferences have changed since last search and delete matches
-    // check if any players have failed to search in the last X days and delete matches
+    // check if any players have failed to search (inactive) in the last X days and delete matches
+    // check matches composite preferences against users and assign compatibility score
+    // check number of other users 'ready' status
+
     // return matches
 
 // submit 'ready up' to matched group
