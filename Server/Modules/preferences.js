@@ -5,8 +5,8 @@ const config = require('../../config.json');
 const Preferences = require('../Models/preferences');
 const User = require('../Models/user');
 const Utils = require('../Modules/utils');
-const Log() = Utils.Log;
-const Error() = Utils.Error;
+const Log = Utils.Log;
+const Error = Utils.Error;
 var preferencesList = require('../Data/preferences');
 // local
 var exports = module.exports = {};
@@ -46,9 +46,9 @@ exports.GetPreferences = function(req, res) {
     var query = Preferences.where({username: req.params.username})
     query.findOne(function(err, response){
         if(err){
-            res.status(500)json({
+            res.status(500).json({
                 "Status": "Error",
-                "Error": Error(8, err);
+                "Error": Error(8, err)
             })
         }
         if(response){
@@ -60,9 +60,8 @@ exports.GetPreferences = function(req, res) {
         } else {
             res.json({
               "Status": "Error",
-              "Error": Error(9, err);
+              "Error": Error(9, err)
             })
-          })
         }
     });
 }
@@ -103,7 +102,7 @@ exports.UpsertPreferences = function(req, res) {
                     } else {
                         res.status(500).json({
                             "Status": "Error",
-                            "Error" : Error(1);
+                            "Error" : Error(1)
                         })
                     }
                 } else {
@@ -123,7 +122,7 @@ exports.UpsertPreferences = function(req, res) {
                         if(err){
                             res.status(500).json({
                                 "Status": "Error",
-                                "Error": Error(4, err);,
+                                "Error": Error(4, err)
                             });
                         } else {
                             Log('INFO', "Preferences added successfully");

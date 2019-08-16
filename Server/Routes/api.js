@@ -8,8 +8,8 @@ const config = require('../../config.json');
 const preferences = require('../Modules/preferences');
 const user = require('../Modules/user');
 const Utils = require('../Modules/utils');
-const Log() = Utils.Log;
-const Error() = Utils.Error;
+const Log = Utils.Log;
+const Error = Utils.Error;
 
 // local
 mongoose.Promise = global.Promise;

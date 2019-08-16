@@ -1,50 +1,50 @@
 {
-    0: {
+    "0": {
         "Message": "An Unknown Error Occurred",
         "Log": "An Error Code was used that did not have an error message!",
         "Level": "ERROR"
         },
-    1: {
+    "1": {
         "Message": "User Already Exists",
         "Log": "User attempted to create account with username that already existed",
         "Level": "INFO"
         },
-    2: {
+    "2": {
         "Message": "Unable to find user matching that username",
         "Log": "Failed to find a user with specified username",
         "Level": "INFO"
         },
-    3: {
+    "3": {
         "Message": "Something went wrong, please try again later",
         "Log": "Error when attempting to save create user with valid user details",
         "Level": "ERROR"
         },
-    4: {
+    "4": {
         "Message": "Something went wrong, please try again later",
         "Log": "Error when attempting to save valid user preferences",
         "Level": "ERROR"
         },
-    5: {
+    "5": {
         "Message": "Username and/or Password supplied is incorrect",
         "Log": "User attempted to login with invalid username",
         "Level": "ERROR"
         },
-    6: {
+    "6": {
         "Message": "Username and/or Password supplied is incorrect",
         "Log": "User attempted to login with invalid password",
         "Level": "ERROR"
         },
-    7: {
+    "7": {
         "Message": "Database connection is currently down",
         "Log": "Error connecting to the database",
         "Level": "ERROR"
     },
-    8: {
+    "8": {
         "Message": "Error when attempting to retrieve selected data",
         "Log": "Error when attempting to run findOne query",
         "Level": "ERROR"
     },
-    9: {
+    "9": {
         "Message": "Unable to find any preferences for user matching that username",
         "Log": "Unable to find preferences for user",
         "Level": "INFO"

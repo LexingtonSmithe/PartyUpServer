@@ -6,12 +6,13 @@ const mongoose = require('mongoose');
 const config = require('../../config.json');
 const User = require('../Models/user');
 const Utils = require('../Modules/utils');
-const Log() = Utils.Log;
-const Error() = Utils.Error;
+var Log = Utils.Log();
+var Error = Utils.Error();
 // local
 var exports = module.exports = {};
 
 exports.CreateUser = function(req, res){
+
     User.findOne({username: req.body.username}, function(err, user){
         Log('INFO', "Checking for user: " + req.body.username);
         if(err){

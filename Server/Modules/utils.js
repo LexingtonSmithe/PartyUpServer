@@ -6,9 +6,7 @@ const errors = require('../Data/Errors');
 // local
 var exports = module.exports = {};
 
-
-
- exports.GenerateUUID = function(){
+exports.GenerateUUID = function(){
     var uuid = uuidv1();
     return uuid;
 }

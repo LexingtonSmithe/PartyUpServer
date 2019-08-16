@@ -5,7 +5,7 @@ const http = require('http');
 const app = express();
 const api = require('./Server/Routes/api');
 const Utils = require('./Server/Modules/utils');
-const Log() = Utils.Log
+const Log = Utils.Log
 // Parsers
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));

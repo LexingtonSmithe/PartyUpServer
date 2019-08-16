@@ -7,7 +7,7 @@ const config = require('../config.json');
 describe('User Unit Tests', function() {
   it('Should Encrypt the password', function (done) {
       var password = "password";
-      var encryptedPassword = "92bc9d1aba93853520b2a2fee4041718"
+      var encryptedPassword = "1a2124793feb02fc6bfdece630b4ed99"
       var test = user.EncryptPassword(password)
       expect(test).to.equal(encryptedPassword);
       done();
@@ -15,7 +15,7 @@ describe('User Unit Tests', function() {
 
   it('Should Decrypt the password', function (done) {
       var password = "password";
-      var encryptedPassword = "92bc9d1aba93853520b2a2fee4041718";
+      var encryptedPassword = "1a2124793feb02fc6bfdece630b4ed99";
       var test = user.DecryptPassword(encryptedPassword);
       expect(test).to.equal(password);
       done();

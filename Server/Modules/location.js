@@ -5,8 +5,8 @@ const Group = require('../Models/group');
 const Preferences = require('../Models/preferences');
 const User = require('../Models/user');
 const Utils = require('../Modules/utils');
-const Log() = Utils.Log;
-const Error() = Utils.Error;
+const Log = Utils.Log;
+const Error = Utils.Error;
 
 // local
 var exports = module.exports = {};

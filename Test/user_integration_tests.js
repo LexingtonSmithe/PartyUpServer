@@ -1,9 +1,6 @@
 // external
 var expect = require('Chai').expect;
-var Mongoose = require('mongoose').Mongoose;
-var mongoose = new Mongoose();
-var Mockgoose = require('mock-mongoose').Mockgoose;
-var mockgoose = new Mockgoose(mongoose);
+
 // internal
 const user = require('../Server/Modules/user');
 const config = require('../config.json');
