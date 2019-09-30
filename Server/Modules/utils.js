@@ -12,7 +12,7 @@ exports.GenerateUUID = function(){
 }
 
 exports.Log = function(level, message, data){
-    var data = data || "No Data";
+    var data = data || "";
     switch(config.logLevel){
         case "ALL":
             console.log(level + ": " + message + '\n' + data);

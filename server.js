@@ -4,8 +4,8 @@ const path = require('path');
 const http = require('http');
 const app = express();
 const api = require('./Server/Routes/api');
-const Utils = require('./Server/Modules/utils');
-const Log = Utils.Log
+const utils = require('./Server/Modules/utils');
+const Log = utils.Log;
 // Parsers
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false}));

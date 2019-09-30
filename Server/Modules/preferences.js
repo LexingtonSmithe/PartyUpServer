@@ -4,9 +4,9 @@ const mongoose = require('mongoose');
 const config = require('../../config.json');
 const Preferences = require('../Models/preferences');
 const User = require('../Models/user');
-const Utils = require('../Modules/utils');
-const Log = Utils.Log;
-const Error = Utils.Error;
+const utils = require('../Modules/utils');
+const Log = utils.Log;
+const Error = utils.Error;
 var preferencesList = require('../Data/preferences');
 // local
 var exports = module.exports = {};
@@ -21,7 +21,7 @@ exports.GetPreferencesList = function(req, res) {
             })
         }
         if(response){
-            //utils.Log('INFO', response);
+            //Log('INFO', response);
             Log('INFO', "Preferences Found: Adding Preset Values");
             preferencesList.systems.default = response.systems;
             preferencesList.role.default = response.role;
@@ -79,7 +79,7 @@ exports.UpsertPreferences = function(req, res) {
                     Error(8, err);
                 }
                 if(response){
-                    //utils.Log('INFO', response)
+                    //Log('INFO', response)
                     Log('INFO', 'Preferences Found, Updating');
                     var data = {
                         username: req.params.username,

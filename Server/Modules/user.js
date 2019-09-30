@@ -5,14 +5,13 @@ const mongoose = require('mongoose');
 // internal
 const config = require('../../config.json');
 const User = require('../Models/user');
-const Utils = require('../Modules/utils');
-var Log = Utils.Log();
-var Error = Utils.Error();
+const utils = require('./utils');
+var Log = utils.Log;
+var Error = utils.Error;
 // local
 var exports = module.exports = {};
 
 exports.CreateUser = function(req, res){
-
     User.findOne({username: req.body.username}, function(err, user){
         Log('INFO', "Checking for user: " + req.body.username);
         if(err){
@@ -27,7 +26,7 @@ exports.CreateUser = function(req, res){
         } else {
             Log('INFO', "No user found, creating user");
             var newUser = new User();
-            newUser.user_id = GenerateUserID();
+            newUser.user_id = utils.GenerateUUID();
             newUser.username = req.body.username;
             newUser.display_name = req.body.display_name;
             newUser.password = exports.EncryptPassword(req.body.password); // once we have something that sends us encrypted passwords we should remove this
@@ -100,7 +99,6 @@ exports.UserAuthentication = function(username, access_token){
     return result;
 }
 
-
 exports.EncryptPassword = function(password){
     var mykey = crypto.createCipher('aes-128-cbc', config.passwordEncryptionKey);
     var encryptedPassword = mykey.update(password, 'utf8', 'hex')
@@ -125,7 +123,7 @@ exports.DecryptAccessToken = function(access_token){
 exports.CreateAccessToken = function(username){
     var temp_token = "";
     var date = Date.now();
-    temp_token += secret;
+    temp_token += config.secret;
     temp_token += date;
     temp_token += username;
     // make sure what we're setting in the access key is also what we scheck against in the db
