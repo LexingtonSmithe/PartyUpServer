@@ -6,13 +6,13 @@ const mongoose = require('mongoose');
 const config = require('../../config.json');
 const User = require('../Models/user');
 const Utils = require('../Modules/utils');
-var Log = Utils.Log();
-var Error = Utils.Error();
+let Log = Utils.Log();
+let Error = Utils.Error();
 // local
-var exports = module.exports = {};
+let exports = module.exports = {};
 
 exports.CreateUser = function(req, res){
-
+    // checkuserexists().then(dostuff)
     User.findOne({username: req.body.username}, function(err, user){
         Log('INFO', "Checking for user: " + req.body.username);
         if(err){
@@ -26,7 +26,7 @@ exports.CreateUser = function(req, res){
             })
         } else {
             Log('INFO', "No user found, creating user");
-            var newUser = new User();
+            let newUser = new User();
             newUser.user_id = GenerateUserID();
             newUser.username = req.body.username;
             newUser.display_name = req.body.display_name;
@@ -62,7 +62,7 @@ exports.CreateUser = function(req, res){
                     "Status": "Success",
                     "Message": "Created User",
                     "Token": exports.CreateAccessToken(addedUser.username),
-                    "Data": addedUser
+                    "Data": addedUser // we don't need to return the user we just added
                 });
               }
             })
@@ -74,7 +74,7 @@ exports.CreateUser = function(req, res){
 exports.UserLogin = function(req, res){
     if(CheckUserExists(req.params.username)){
         if(ValidatePassword(req.params.username, req.params.password)){
-            var access_token = exports.CreateAccessToken(username);
+            let access_token = exports.CreateAccessToken(username);
         } else {
             res.json({
                 "Status": "Error",
@@ -90,63 +90,69 @@ exports.UserLogin = function(req, res){
     return access_token;
 }
 
+exports.GetUserData = function(req, res){
+
+
+}
+
 exports.UserAuthentication = function(username, access_token){
-    var decrypted_token = exports.DecryptAccessToken(access_token);
+    let decrypted_token = exports.DecryptAccessToken(access_token);
     if(ValidateAccessToken(username, decrypted_token)){
-        var result = true;
+        let result = true;
     } else {
-        var result = false;
+        let result = false;
     }
     return result;
 }
 
-
+// not needed as the FE will be sending us encrypted passwords
 exports.EncryptPassword = function(password){
-    var mykey = crypto.createCipher('aes-128-cbc', config.passwordEncryptionKey);
-    var encryptedPassword = mykey.update(password, 'utf8', 'hex')
+    let mykey = crypto.createCipher('aes-128-cbc', config.passwordEncryptionKey);
+    let encryptedPassword = mykey.update(password, 'utf8', 'hex')
     encryptedPassword += mykey.final('hex');
     return encryptedPassword;
 }
 
+// not needed as we won't be decrypting passwords
 exports.DecryptPassword = function(password){
-    var mykey = crypto.createDecipher('aes-128-cbc', config.passwordEncryptionKey);
-    var decryptedPassword = mykey.update(password, 'hex', 'utf8')
+    let mykey = crypto.createDecipher('aes-128-cbc', config.passwordEncryptionKey);
+    let decryptedPassword = mykey.update(password, 'hex', 'utf8')
     decryptedPassword += mykey.final('utf8');
     return decryptedPassword;
 }
 
 exports.DecryptAccessToken = function(access_token){
-    var mykey = crypto.createDecipher('aes-128-cbc', config.accessTokenEncryptionKey);
-    var decryptedAccessToken = mykey.update(access_token, 'hex', 'utf8')
+    let mykey = crypto.createDecipher('aes-128-cbc', config.accessTokenEncryptionKey);
+    let decryptedAccessToken = mykey.update(access_token, 'hex', 'utf8')
     decryptedAccessToken += mykey.final('utf8');
     return decryptedAccessToken;
 }
 
 exports.CreateAccessToken = function(username){
-    var temp_token = "";
-    var date = Date.now();
+    let temp_token = "";
+    let date = Date.now();
     temp_token += secret;
     temp_token += date;
     temp_token += username;
     // make sure what we're setting in the access key is also what we scheck against in the db
     User.where({username: username}).update({last_login: date});
 
-    var mykey = crypto.createCipher('aes-128-cbc', config.accessTokenEncryptionKey);
-    var access_token = mykey.update(temp_token, 'utf8', 'hex')
+    let mykey = crypto.createCipher('aes-128-cbc', config.accessTokenEncryptionKey);
+    let access_token = mykey.update(temp_token, 'utf8', 'hex')
     access_token += mykey.final('hex');
     return access_token;
 }
 
 exports.ValidateAccessToken = function (username, access_token){
-    var decrypted_token = exports.DecryptAccessToken(access_token)
-    var used_secret = decrypted_token.substr(0,7);
-    var used_date = decrypted_token.substr(8,16); // todo get date string length
-    var used_username = decrypted_token.substr(17,access_token.length);
+    let decrypted_token = exports.DecryptAccessToken(access_token)
+    let used_secret = decrypted_token.substr(0,7);
+    let used_date = decrypted_token.substr(8,16); // todo get date string length
+    let used_username = decrypted_token.substr(17,access_token.length);
 
     if(used_secret == config.secret && used_date == GetLastLoginDate(username) && Utils.CheckDateTimeout(used_date, config.tokenTimeOut) && CheckUserExists(used_username)){
-        var result = true;
+        let result = true;
     } else {
-        var result = false;
+        let result = false;
         Log('ERROR', "User attempted to use an invalid access token: " + username);
     }
 

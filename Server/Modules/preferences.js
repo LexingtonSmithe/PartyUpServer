@@ -7,21 +7,31 @@ const User = require('../Models/user');
 const Utils = require('../Modules/utils');
 const Log = Utils.Log;
 const Error = Utils.Error;
-var preferencesList = require('../Data/preferences');
+const preferencesList = require('../Data/preferences');
 // local
 var exports = module.exports = {};
 
-exports.GetPreferencesList = function(req, res) {
-    var query = Preferences.where({username: req.params.username})
-    query.findOne(function(err, response){
-        if(err){
-            res.status(500).json({
-                "Status": "Error",
-                "Error": Error(8, err)
-            })
-        }
-        if(response){
-            //utils.Log('INFO', response);
+exports.GetUserPreferences = function(username){
+    Log('INFO', "Searching for preferences for user: " + username);
+    return new Promise((resolve, reject) => {
+        let query = Preferences.where({username: username})
+        query.findOne(function(err, response){
+            if(err){
+                reject(console.log(err));
+            }
+            if(response) {
+                resolve(reponse)
+            }
+        })
+    })
+}
+
+exports.GetPreferencesList = async function(req, res) {
+    let username = req.params.username;
+    await this.GetUserPreferences(username)
+    .then((response) => {
+        let message = "Preferences Found";
+        if(response != null){
             Log('INFO', "Preferences Found: Adding Preset Values");
             preferencesList.systems.default = response.systems;
             preferencesList.role.default = response.role;
@@ -33,17 +43,24 @@ exports.GetPreferencesList = function(req, res) {
             preferencesList.distance.default = response.distance;
         } else {
             Log('INFO', "No Preferences Found");
+            message = "User preferences not found"
         }
         res.json({
             "Status": "Success",
-            "Message": "User preferences not found",
+            "Message": message,
             "Data": preferencesList
         })
-    });
+    })
+    .catch((err) => {
+        res.status(400).json({
+            "Status": "Error",
+            "Error": Error()
+        })
+    })
 }
 
 exports.GetPreferences = function(req, res) {
-    var query = Preferences.where({username: req.params.username})
+    let query = Preferences.where({username: req.params.username})
     query.findOne(function(err, response){
         if(err){
             res.status(500).json({
@@ -73,7 +90,7 @@ exports.UpsertPreferences = function(req, res) {
         }
         if(result){
             Log('INFO', 'Searching For Preferences: ' + req.params.username);
-            var query = Preferences.where({username: req.params.username})
+            let query = Preferences.where({username: req.params.username})
             query.findOne(async function(err, response){
                 if(err){
                     Error(8, err);
@@ -81,7 +98,7 @@ exports.UpsertPreferences = function(req, res) {
                 if(response){
                     //utils.Log('INFO', response)
                     Log('INFO', 'Preferences Found, Updating');
-                    var data = {
+                    let data = {
                         username: req.params.username,
                         systems : req.body.systems,
                         device : req.body.device,
@@ -92,7 +109,7 @@ exports.UpsertPreferences = function(req, res) {
                         times_free : req.body.times_free,
                         distance : req.body.distance,
                     }
-                    var update = await Preferences.replaceOne({ _id: response._id }, data);
+                    let update = await Preferences.replaceOne({ _id: response._id }, data);
                     if(update.nModified == 1){
                         res.json({
                             "Status": "Success",
@@ -108,7 +125,7 @@ exports.UpsertPreferences = function(req, res) {
                 } else {
                     Log('INFO', "No Preferences Found")
                     Log('INFO', "Adding Preferences");
-                    var newPreferences = new Preferences();
+                    let newPreferences = new Preferences();
                     newPreferences.username = req.params.username;
                     newPreferences.systems = req.body.systems;
                     newPreferences.device = req.body.device;

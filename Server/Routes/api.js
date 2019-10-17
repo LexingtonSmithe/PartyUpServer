@@ -28,7 +28,7 @@ mongoose.connect(config.mongoURL, {useNewUrlParser: true}, function(err){
 
 //---------------
 
-
+// -------------------------- USER
 router.post('/user', function(req, res){
   Log('INFO', 'Adding User: ' + req.body.username);
   user.CreateUser(req, res);
@@ -39,7 +39,12 @@ router.post('/user/login', function(req, res){
   user.UserLogin(req, res);
 });
 
+router.get('/user/profile', function(req, res){
+  Log('INFO', 'Logging In: ' + req.params.username);
+  user.GetUserProfile(req, res);
+});
 
+// ------------------------- PREFERENCES
 router.get('/preferences/list', function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferencesList(req, res);
@@ -54,6 +59,7 @@ router.post('/preferences/:username', function(req, res){
     preferences.UpsertPreferences(req, res);
 });
 
+// ------------------------- OTHER
 router.get('/health', async function(req, res){
     var db = "Not Connected";
     utils.Log('INFO', "Health Checked");
