@@ -5,9 +5,9 @@ const mongoose = require('mongoose');
 // internal
 const config = require('../../config.json');
 const User = require('../Models/user');
-const Utils = require('../Modules/utils');
-let Log = Utils.Log();
-let Error = Utils.Error();
+const utils = require('./utils');
+var Log = utils.Log;
+var Error = utils.Error;
 // local
 let exports = module.exports = {};
 

@@ -96,7 +96,7 @@ exports.UpsertPreferences = function(req, res) {
                     Error(8, err);
                 }
                 if(response){
-                    //utils.Log('INFO', response)
+                    //Log('INFO', response)
                     Log('INFO', 'Preferences Found, Updating');
                     let data = {
                         username: req.params.username,

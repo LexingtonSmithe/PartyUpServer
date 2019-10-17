@@ -7,9 +7,9 @@ const config = require('../../config.json');
 // internal
 const preferences = require('../Modules/preferences');
 const user = require('../Modules/user');
-const Utils = require('../Modules/utils');
-const Log = Utils.Log;
-const Error = Utils.Error;
+const utils = require('../Modules/utils');
+const Log = utils.Log;
+const Error = utils.Error;
 
 // local
 mongoose.Promise = global.Promise;
@@ -62,7 +62,7 @@ router.post('/preferences/:username', function(req, res){
 // ------------------------- OTHER
 router.get('/health', async function(req, res){
     var db = "Not Connected";
-    utils.Log('INFO', "Health Checked");
+    Log('INFO', "Health Checked");
     if(mongoose.connection.readyState == 1){
         db = {
             name: mongoose.connection.name,
