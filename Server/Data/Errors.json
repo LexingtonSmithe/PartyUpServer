@@ -1,4 +1,4 @@
-{
+[
     {
         "Code": 0,
         "Message": "An Unknown Error Occurred",
@@ -58,5 +58,11 @@
         "Message": "Unable to find any preferences for user matching that username",
         "Log": "Unable to find preferences for user",
         "Level": "INFO"
+    },
+    {
+        "Code": 10,
+        "Message": "Error retrieving number of users",
+        "Log": "Error counting number of users",
+        "Level": "Error"
     }
-}
+]

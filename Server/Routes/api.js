@@ -45,7 +45,7 @@ router.get('/user/profile', function(req, res){
 });
 
 // ------------------------- PREFERENCES
-router.get('/preferences/list', function(req, res){
+router.get('/preferences/list/:username', function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferencesList(req, res);
 });
@@ -61,17 +61,25 @@ router.post('/preferences/:username', function(req, res){
 
 // ------------------------- OTHER
 router.get('/health', async function(req, res){
-    var db = "Not Connected";
     Log('INFO', "Health Checked");
     if(mongoose.connection.readyState == 1){
-        db = {
+        let db = {
             name: mongoose.connection.name,
-            state: "Connected"
+            state: "Connected",
         }
+        let numberOfUsers = await user.NumberOfUsers();
+        let metrics = {
+            users: numberOfUsers
+        }
+        let data = {
+            "Database": db,
+            "Metrics": metrics
+        }
+        Log('INFO', "Health Check: ", data)
         res.json({
                 "Status": "OK",
                 "Message": "Everything seems tickety-boo",
-                "Database": db
+                "Data": data
         })
     } else {
         res.json({
