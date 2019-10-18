@@ -64,5 +64,11 @@
         "Message": "Error retrieving number of users",
         "Log": "Error counting number of users",
         "Level": "Error"
+    },
+    {
+        "Code": 11,
+        "Message": "Invalid access token, please log in again",
+        "Log": "User attempted to use an invalid access token",
+        "Level": "Info"
     }
 ]

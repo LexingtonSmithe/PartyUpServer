@@ -6,22 +6,41 @@ const mongoose = require('mongoose');
 const config = require('../../config.json');
 const User = require('../Models/user');
 const utils = require('./utils');
+const auth = require('./authentication');
 const Log = utils.Log;
 const Error = utils.Error;
 // local
 var  exports = module.exports = {};
 
+exports.CheckUserExists = function(username){
+    Log('INFO', "Checking for user: " + username);
+    return new Promise((resolve, reject) => {
+        User.findOne({username: username}, function(err, user){
+            if(user) {
+                Log('INFO', "Found User: " + username)
+                let result = true;
+                resolve(result);
+            } else {
+                Log('INFO', "User Not Found");
+                let result = false;
+                resolve(result);
+            }
+            if(err){
+                reject(Error(8, err));
+            }
+        })
+    })
+}
 exports.CreateUser = async function(req, res){
     // checkuserexists().then(dostuff)
-    let user = await this.CheckUserExists(req.body.username)
+    let user = await this.CheckUserExists(req.body.username);
     if(user){
-        Log('INFO', "Found User: " + req.body.username)
         res.json({
             "Status": "Error",
             "Error": Error(1),
         })
     } else {
-        Log('INFO', "No user found, creating user");
+        Log('INFO', "Creating user");
         let newUser = new User();
         newUser.user_id = GenerateUserID();
         newUser.username = req.body.username;
@@ -46,7 +65,7 @@ exports.CreateUser = async function(req, res){
         newUser.rec_updated_at = Date.now();
         newUser.last_login = Date.now();
         newUser.last_search = null;
-        newUser.save(function(err, addedUser) {
+        newUser.save(async function(err, addedUser) {
           if(err){
               res.status(500).json({
                   "Status": "Error",
@@ -54,10 +73,12 @@ exports.CreateUser = async function(req, res){
               });
           } else {
             Log('INFO', 'User created successfully');
+
+            let accessToken = await auth.CreateAccessToken(addedUser.username),
             res.json({
                 "Status": "Success",
                 "Message": "Created User",
-                "Token": exports.CreateAccessToken(addedUser.username),
+                "Token": accessToken,
                 "Data": addedUser // we don't need to return the user we just added
             });
           }
@@ -65,12 +86,49 @@ exports.CreateUser = async function(req, res){
     }
 }
 
+exports.UpdateUser = async function(req, res){
+    // checkuserexists().then(dostuff)
+    let user = await this.CheckUserExists(req.body.username)
+    if(user){
+        let validToken = await auth.ValidateAccessToken(req.body.usernmae);
+        if(validToken){
+            Log('INFO', "Updating user");
+            // updating user data -> setters
+            newUser.findOneAndUpdate(async function(err, addedUser) {
+              if(err){
+                  res.status(500).json({
+                      "Status": "Error",
+                      "Error": Error(3, err)
+                  });
+              } else {
+                Log('INFO', 'User updated successfully');
+                res.json({
+                    "Status": "Success",
+                    "Message": "Updated User",
+                    "Token": accessToken,
+                    "Data": addedUser // we don't need to return the user we just added
+                });
+              }
+            })
+        }
+        res.status(401)json({
+            "Status": "Error",
+            "Error": Error(11),
+        })
+    } else {
+        res.stastu(400)json({
+            "Status": "Error",
+            "Error": Error(2)
+        })
+    }
+}
+
 exports.UserLogin = async function(req, res){
     let userExists = await this.CheckUserExists(req.params.username)
     if(userExists){
-        let passwordValid = await ValidatePassword(req.params.username, req.params.password)
+        let passwordValid = await auth.ValidatePassword(req.params.username, req.params.password)
         if(passwordValid){
-            let access_token = await this.CreateAccessToken(username);
+            let access_token = await auth.CreateAccessToken(username);
             res.json({
                 "Status": "Success",
                 "Message": "User logged in",
@@ -96,89 +154,8 @@ exports.GetUserData = function(req, res){
 
 }
 
-exports.CheckUserExists = function(username){
-    Log('INFO', "Checking for user: " + username);
-    return new Promise((resolve, reject) => {
-        User.findOne({username: username}, function(err, user){
-            if(user) {
-                Log('INFO', "Found User: " + username)
-                let result = true;
-                resolve(result);
-            } else {
-                Log('INFO', "User Not Found");
-                let result = false;
-                resolve(result);
-            }
-            if(err){
-                reject(Error(8, err));
-            }
-        })
-    })
-}
 
-exports.UserAuthentication = function(username, access_token){
-    let decrypted_token = exports.DecryptAccessToken(access_token);
-    if(ValidateAccessToken(username, decrypted_token)){
-        let result = true;
-    } else {
-        let result = false;
-    }
-    return result;
-}
 
-// not needed as the FE will be sending us encrypted passwords
-exports.EncryptPassword = function(password){
-    let mykey = crypto.createCipher('aes-128-cbc', config.passwordEncryptionKey);
-    let encryptedPassword = mykey.update(password, 'utf8', 'hex')
-    encryptedPassword += mykey.final('hex');
-    return encryptedPassword;
-}
-
-// not needed as we won't be decrypting passwords
-exports.DecryptPassword = function(password){
-    let mykey = crypto.createDecipher('aes-128-cbc', config.passwordEncryptionKey);
-    let decryptedPassword = mykey.update(password, 'hex', 'utf8')
-    decryptedPassword += mykey.final('utf8');
-    return decryptedPassword;
-}
-
-exports.DecryptAccessToken = function(access_token){
-    let mykey = crypto.createDecipher('aes-128-cbc', config.accessTokenEncryptionKey);
-    let decryptedAccessToken = mykey.update(access_token, 'hex', 'utf8')
-    decryptedAccessToken += mykey.final('utf8');
-    return decryptedAccessToken;
-}
-
-exports.CreateAccessToken = function(username){
-    let temp_token = "";
-    let date = Date.now();
-    temp_token += secret;
-    temp_token += date;
-    temp_token += username;
-    // make sure what we're setting in the access key is also what we check against in the db
-    User.where({username: username}).update({last_login: date});
-
-    let mykey = crypto.createCipher('aes-128-cbc', config.accessTokenEncryptionKey);
-    let access_token = mykey.update(temp_token, 'utf8', 'hex')
-    access_token += mykey.final('hex');
-    return access_token;
-}
-
-exports.ValidateAccessToken = async function (username, access_token){
-    let decrypted_token = exports.DecryptAccessToken(access_token)
-    let used_secret = decrypted_token.substr(0,7);
-    let used_date = decrypted_token.substr(8,16); // todo get date string length
-    let used_username = decrypted_token.substr(17,access_token.length);
-    let userExists = await this.CheckUserExists(used_username)
-    if(userExists && used_secret == config.secret && used_date == GetLastLoginDate(username) && Utils.CheckDateTimeout(used_date, config.tokenTimeOut)){
-        let result = true;
-    } else {
-        let result = false;
-        Log('ERROR', "User attempted to use an invalid access token: " + username);
-    }
-
-    return result;
-}
 
 exports.NumberOfUsers = function(){
     return new Promise((resolve,reject) => {
@@ -189,13 +166,4 @@ exports.NumberOfUsers = function(){
             reject(Error(10));
         }
     })
-}
-
-function GetLastLoginDate(username){
-
-
-}
-
-function ValidatePassword(username, password){
-
 }
