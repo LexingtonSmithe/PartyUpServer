@@ -4,10 +4,11 @@ const mongoose = require('mongoose');
 const config = require('../../config.json');
 const Preferences = require('../Models/preferences');
 const User = require('../Models/user');
-const user = require('../Modules/user');
-const Utils = require('../Modules/utils');
-const Log = Utils.Log;
-const Error = Utils.Error;
+const user = require('./user');
+const utils = require('./utils');
+const auth = require('./authentication');
+const Log = utils.Log;
+const Error = utils.Error;
 const defaultPreferencesList = require('../Data/preferences');
 // local
 var exports = module.exports = {};
@@ -29,6 +30,22 @@ exports.GetUserPreferences = function(username){
 
 exports.GetPreferences = async function(req, res) {
     let username = req.params.username;
+    let access_token = req.headers.access_token;
+
+    // TODO : Sort this shit out
+    
+    try {
+        let validAccessToken = await auth.ValidateAccessToken(username, access_token);
+    }
+    catch(error){
+        Log('ERROR', 'caught an error from, ValidateAccessToken', error)
+    }
+    try {
+        let validUser = await user.CheckUserExists(username);
+    }
+    catch(error){
+        Log('ERROR', 'caught an error from, CheckUserExists', error)
+    }
     await this.GetUserPreferences(username)
     .then((response) => {
         let message = "";
@@ -49,15 +66,15 @@ exports.GetPreferences = async function(req, res) {
             message = "User preferences not found"
         }
         res.json({
-            "Status": "Success",
-            "Message": message,
-            "Data": preferencesList
+            "status": "Success",
+            "message": message,
+            "data": preferencesList
         })
     })
     .catch((err) => {
         res.status(500).json({
-            "Status": "Error",
-            "Error": Error(9, err)
+            "status": "Error",
+            "error": Error(9, err)
         })
     });
 }
@@ -88,29 +105,29 @@ exports.GetPreferencesList = async function(req, res) {
                     message = "User preferences not found"
                 }
                 res.json({
-                    "Status": "Success",
-                    "Message": "Users default preferences added to list",
-                    "Data": preferencesList
+                    "status": "Success",
+                    "message": "Users default preferences added to list",
+                    "data": preferencesList
                 })
             })
             .catch((err) => {
                 res.status(500).json({
-                    "Status": "Error",
-                    "Error": Error(9, err)
+                    "status": "Error",
+                    "error": Error(9, err)
                 })
             });
         } else {
             res.json({
-                "Status": "Error",
-                "Message": "User provided doesn't exist, but here's the list anyways",
-                "Data": defaultPreferencesList
+                "status": "Error",
+                "message": "User provided doesn't exist, but here's the list anyways",
+                "data": defaultPreferencesList
             })
         }
     } else {
         res.json({
-            "Status": "Success",
-            "Message": "Default Preferences List",
-            "Data": defaultPreferencesList
+            "status": "Success",
+            "message": "Default Preferences List",
+            "data": defaultPreferencesList
         })
     }
 }
@@ -144,14 +161,14 @@ exports.UpsertPreferences = function(req, res) {
                     let update = await Preferences.replaceOne({ _id: response._id }, data);
                     if(update.nModified == 1){
                         res.json({
-                            "Status": "Success",
-                            "Message": "Successfully updated user preferences",
-                            "Data": data
+                            "status": "Success",
+                            "message": "Successfully updated user preferences",
+                            "data": data
                         })
                     } else {
                         res.status(500).json({
-                            "Status": "Error",
-                            "Error" : Error(1)
+                            "status": "Error",
+                            "error" : Error(1)
                         })
                     }
                 } else {
@@ -170,15 +187,15 @@ exports.UpsertPreferences = function(req, res) {
                     newPreferences.save(function(err, addedPreferences){
                         if(err){
                             res.status(500).json({
-                                "Status": "Error",
-                                "Error": Error(4, err)
+                                "status": "Error",
+                                "error": Error(4, err)
                             });
                         } else {
                             Log('INFO', "Preferences added successfully");
                             res.json({
-                                "Status": "Success",
-                                "Message": "Successfully updated user preferences",
-                                "Data": addedPreferences
+                                "status": "Success",
+                                "message": "Successfully updated user preferences",
+                                "data": addedPreferences
                             })
                         }
                     })

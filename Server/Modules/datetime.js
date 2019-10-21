@@ -9,14 +9,15 @@ var exports = module.exports = {};
 
 
 
-exports.CheckDateTimeout = function(date, timeout){
-    var todays_date = new Date().now;
+exports.CheckDateTimeout = function(date){
+    let todays_date = new Date().now;
+    let timeout = config.tokenTimeOut;
     Log('INFO', todays_date);
     Log('INFO', date);
     if(todays_date - date > timeout){
-        var result = true;
+        let result = true;
     } else {
-        var result = false;
+        let result = false;
     }
     return result;
 }

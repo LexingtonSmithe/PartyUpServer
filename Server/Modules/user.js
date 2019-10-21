@@ -35,17 +35,17 @@ exports.CreateUser = async function(req, res){
     // checkuserexists().then(dostuff)
     let user = await this.CheckUserExists(req.body.username);
     if(user){
-        res.json({
-            "Status": "Error",
-            "Error": Error(1),
+        res.status(400).json({
+            "status": "Error",
+            "error": Error(1),
         })
     } else {
         Log('INFO', "Creating user");
         let newUser = new User();
-        newUser.user_id = GenerateUserID();
+        newUser.user_id = utils.GenerateUUID();
         newUser.username = req.body.username;
         newUser.display_name = req.body.display_name;
-        newUser.password = exports.EncryptPassword(req.body.password); // once we have something that sends us encrypted passwords we should remove this
+        newUser.password = auth.EncryptPassword(req.body.password); // once we have something that sends us encrypted passwords we should remove this
         newUser.name = {
             first_name : req.body.name.first_name,
             last_name : req.body.name.last_name
@@ -68,18 +68,18 @@ exports.CreateUser = async function(req, res){
         newUser.save(async function(err, addedUser) {
           if(err){
               res.status(500).json({
-                  "Status": "Error",
-                  "Error": Error(3, err)
+                  "status": "Error",
+                  "error": Error(3, err)
               });
           } else {
             Log('INFO', 'User created successfully');
 
-            let accessToken = await auth.CreateAccessToken(addedUser.username),
+            let accessToken = await auth.CreateAccessToken(addedUser.username);
             res.json({
-                "Status": "Success",
-                "Message": "Created User",
-                "Token": accessToken,
-                "Data": addedUser // we don't need to return the user we just added
+                "status": "Success",
+                "message": "Created User",
+                "access_token": accessToken,
+                "data": addedUser // we don't need to return the user we just added
             });
           }
         })
@@ -97,56 +97,68 @@ exports.UpdateUser = async function(req, res){
             newUser.findOneAndUpdate(async function(err, addedUser) {
               if(err){
                   res.status(500).json({
-                      "Status": "Error",
-                      "Error": Error(3, err)
+                      "status": "Error",
+                      "error": Error(3, err)
                   });
               } else {
                 Log('INFO', 'User updated successfully');
                 res.json({
-                    "Status": "Success",
-                    "Message": "Updated User",
-                    "Token": accessToken,
-                    "Data": addedUser // we don't need to return the user we just added
+                    "status": "Success",
+                    "message": "Updated User",
+                    "access_token": accessToken,
+                    "data": addedUser // we don't need to return the user we just added
                 });
               }
             })
         }
-        res.status(401)json({
-            "Status": "Error",
+        res.status(401).json({
+            "status": "Error",
             "Error": Error(11),
         })
     } else {
-        res.stastu(400)json({
-            "Status": "Error",
-            "Error": Error(2)
+        res.status(400).json({
+            "status": "Error",
+            "error": Error(2)
         })
     }
 }
 
 exports.UserLogin = async function(req, res){
-    let userExists = await this.CheckUserExists(req.params.username)
+    let userExists = await this.CheckUserExists(req.body.username)
     if(userExists){
-        let passwordValid = await auth.ValidatePassword(req.params.username, req.params.password)
-        if(passwordValid){
-            let access_token = await auth.CreateAccessToken(username);
-            res.json({
-                "Status": "Success",
-                "Message": "User logged in",
-                "AccessToken": access_token
-            })
-        } else {
-            res.status(403).json({
-                "Status": "Error",
-                "Error": Error(6, err)
-            })
+        var passwordValid;
+        try {
+            passwordValid = await auth.ValidatePassword(req.body.username, req.body.password)
+            if(passwordValid){
+                Log('INFO', "Password valid creating access token");
+                let access_token = await auth.CreateAccessToken(req.body.username);
+                res.json({
+                    "status": "Success",
+                    "message": "User logged in",
+                    "access_token": access_token
+                })
+            }
+        }
+        catch(err){
+            if(err == "Incorrect password"){
+                res.status(403).json({
+                    "status": "Error",
+                    "error": Error(6)
+                })
+            } else {
+                res.status(400).json({
+                    "status": "Error",
+                    "error": Error(12, err)
+                });
+            }
+
         }
     } else {
         res.status(403).json({
-            "Status": "Error",
-            "Error": Error(5, err)
+            "status": "Error",
+            "error": Error(5)
         })
     }
-    return access_token;
 }
 
 exports.GetUserData = function(req, res){
@@ -158,7 +170,7 @@ exports.GetUserData = function(req, res){
 
 
 exports.NumberOfUsers = function(){
-    return new Promise((resolve,reject) => {
+    return new Promise((resolve, reject) => {
         let numberOfUsers = User.estimatedDocumentCount();
         if(numberOfUsers){
             resolve(numberOfUsers);

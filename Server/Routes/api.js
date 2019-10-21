@@ -35,7 +35,7 @@ router.post('/user', function(req, res){
 });
 
 router.post('/user/login', function(req, res){
-  Log('INFO', 'Logging In: ' + req.params.username);
+  Log('INFO', 'Logging In: ' + req.body.username);
   user.UserLogin(req, res);
 });
 
