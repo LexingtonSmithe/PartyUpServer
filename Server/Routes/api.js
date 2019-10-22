@@ -8,6 +8,8 @@ const config = require('../../config.json');
 const preferences = require('../Modules/preferences');
 const user = require('../Modules/user');
 const utils = require('../Modules/utils');
+const auth = require('../Modules/authentication');
+const Auth = auth.AuthenticationMiddleware;
 const Log = utils.Log;
 const Error = utils.Error;
 
@@ -34,9 +36,9 @@ router.post('/user', function(req, res){
   user.CreateUser(req, res);
 });
 
-router.post('/user/login', function(req, res){
+router.post('/auth/login', function(req, res){
   Log('INFO', 'Logging In: ' + req.body.username);
-  user.UserLogin(req, res);
+  auth.UserLogin(req, res);
 });
 
 router.get('/user/profile', function(req, res){
@@ -45,17 +47,17 @@ router.get('/user/profile', function(req, res){
 });
 
 // ------------------------- PREFERENCES
-router.get('/preferences/list/:username', function(req, res){
+router.get('/preferences/list/', function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferencesList(req, res);
 });
 
-router.get('/preferences/:username', function(req, res){
+router.get('/preferences/', Auth, function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferences(req, res);
 });
 
-router.post('/preferences/:username', function(req, res){
+router.post('/preferences/:username', Auth, function(req, res){
     preferences.UpsertPreferences(req, res);
 });
 

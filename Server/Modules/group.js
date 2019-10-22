@@ -9,7 +9,11 @@ const Log = utils.Log;
 const Error = utils.Error;
 
 // local
-var exports = module.exports = {};
+module.exports = {
+    something : function(){
+
+    }
+};
 
 
 

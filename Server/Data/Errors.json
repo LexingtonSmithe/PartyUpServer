@@ -76,5 +76,23 @@
         "Message": "Something went wrong, please try again later",
         "Log": "Error when trying to validate password",
         "Level": "ERROR"
+    },
+    {
+        "Code": 13,
+        "Message": "Access Token not provided",
+        "Log": "Request received without access token",
+        "Level": "INFO"
+    },
+    {
+        "Code": 14,
+        "Message": "Username not provided",
+        "Log": "Request received without username",
+        "Level": "INFO"
+    },
+    {
+        "Code": 15,
+        "Message": "Error validating username or access token",
+        "Log": "Error validating username or access token",
+        "Level": "ERROR"
     }
 ]

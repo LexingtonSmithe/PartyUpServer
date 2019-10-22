@@ -11,45 +11,165 @@ const datetime = require('./datetime');
 const Log = utils.Log;
 const Error = utils.Error;
 // local
-var  exports = module.exports = {};
+module.exports = {
+    UserLogin : async function(req, res){
+        let user_exists = await user.UserExists(req.body.username)
+        if(user_exists){
+            var passwordValid;
+            try {
+                passwordValid = await this.ValidatePassword(req.body.username, req.body.password)
+                if(passwordValid){
+                    Log('INFO', "Password valid creating access token");
+                    let access_token = await this.CreateAccessToken(req.body.username);
+                    res.json({
+                        "status": "Success",
+                        "message": "User logged in",
+                        "access_token": access_token
+                    })
+                }
+            }
+            catch(err){
+                if(err == "Incorrect password"){
+                    res.status(403).json({
+                        "status": "Error",
+                        "error": Error(6)
+                    })
+                } else {
+                    res.status(400).json({
+                        "status": "Error",
+                        "error": Error(12, err)
+                    });
+                }
 
-// not needed as the FE will be sending us encrypted passwords
-exports.EncryptPassword = function(password){
-    let mykey = crypto.createCipher('aes-128-cbc', config.passwordEncryptionKey);
-    let encryptedPassword = mykey.update(password, 'utf8', 'hex')
-    encryptedPassword += mykey.final('hex');
-    return encryptedPassword;
-}
-
-// not needed as we won't be decrypting passwords
-exports.DecryptPassword = function(password){
-    let mykey = crypto.createDecipher('aes-128-cbc', config.passwordEncryptionKey);
-    let decryptedPassword = mykey.update(password, 'hex', 'utf8')
-    decryptedPassword += mykey.final('utf8');
-    return decryptedPassword;
-}
-
-exports.CreateAccessToken = function(username){
-    Log('INFO', "Creating access token for: " + username);
-    let temp_token = "";
-    let date = Date.now();
-    temp_token += config.secret;
-    temp_token += date;
-    temp_token += username;
-    // make sure what we're setting in the access key is also what we check against in the db
-    User.updateOne({username: username}, {last_login: date}, {upsert: true}, (err, result)=>{
-        if(err){
-            Error(13, err);
+            }
         } else {
-            Log('INFO', "Updated last login date: " + date);
+            res.status(403).json({
+                "status": "Error",
+                "error": Error(5)
+            })
         }
-    });
+    },
 
-    let mykey = crypto.createCipher('aes-128-cbc', config.accessTokenEncryptionKey);
-    let access_token = mykey.update(temp_token, 'utf8', 'hex')
-    access_token += mykey.final('hex');
-    return access_token;
-}
+    ValidatePassword : function (username, submitted_password){
+        var that = this;
+        return new Promise((resolve, reject) => {
+            User.findOne({username: username}, function(err, user){
+                if(user) {
+                    /*
+                        TODO
+                        delete this encryption when being passed encrypted passwords
+                        and change the conditional to be 'submitted_password'
+                    */
+                    let encrypted_password = that.EncryptPassword(submitted_password);
+                    let stored_password = user.password;
+                    if(stored_password == encrypted_password){
+                        let result = true;
+                        Log('INFO', "Stored passsword matches submmitted password");
+                        resolve(result);
+                    } else {
+                        let result = "Incorrect password"
+                        Log('INFO', "Stored passsword does NOT match submmitted password");
+                        reject(result);
+                    }
+
+                } else {
+                    reject(Error(2))
+                }
+                if(err){
+                    reject(Error(8, err));
+                }
+            })
+        })
+    },
+
+    AuthenticationMiddleware : async function(req, res, next){
+        Log('INFO', "Authenticaticating");
+        let username = req.headers.username;
+        let access_token = req.headers.access_token;
+        if(!access_token){
+            return res.status(401).json({
+                "status": "Error",
+                "error": Error(13, err)
+            })
+        }
+        if(!username){
+            return res.status(401).json({
+                "status": "Error",
+                "error": Error(14, err)
+            })
+        }
+        Log('INFO', "User: " + username + "\nAccess_token: " + access_token)
+
+        try {
+            let validUser = await user.UserExists(username);
+            if(!validUser){
+                return res.status(401).json({
+                    "status": "Error",
+                    "error": Error(2)
+                })
+            }
+            // let validAccessToken = await ValidateAccessToken(username, access_token);
+            // if(!validAccessToken){
+            //     return res.status(401).json({
+            //         "status": "Error",
+            //         "error": Error(11)
+            //     })
+            // }
+            Log('INFO', "Successful Authentication");
+            next();
+        }
+        catch(error){
+            console.log(error);
+            console.log(user);
+            console.log(utils);
+            return res.status(500).json({
+                "status": "Error",
+                "error": Error(15, error)
+            })
+        }
+    },
+
+    // not needed as the FE will be sending us encrypted passwords
+    EncryptPassword : function(password){
+        let mykey = crypto.createCipher('aes-128-cbc', config.passwordEncryptionKey);
+        let encryptedPassword = mykey.update(password, 'utf8', 'hex')
+        encryptedPassword += mykey.final('hex');
+        return encryptedPassword;
+    },
+
+    // not needed as we won't be decrypting passwords
+    DecryptPassword : function(password){
+        let mykey = crypto.createDecipher('aes-128-cbc', config.passwordEncryptionKey);
+        let decryptedPassword = mykey.update(password, 'hex', 'utf8')
+        decryptedPassword += mykey.final('utf8');
+        return decryptedPassword;
+    },
+
+    CreateAccessToken : function(username){
+        Log('INFO', "Creating access token for: " + username);
+        let temp_token = "";
+        let date = Date.now();
+        temp_token += config.secret;
+        temp_token += date;
+        temp_token += username;
+        // make sure what we're setting in the access key is also what we check against in the db
+        User.updateOne({username: username}, {last_login: date}, {upsert: true}, (err, result)=>{
+            if(err){
+                Error(13, err);
+            } else {
+                Log('INFO', "Updated last login date: " + date);
+            }
+        });
+
+        let mykey = crypto.createCipher('aes-128-cbc', config.accessTokenEncryptionKey);
+        let access_token = mykey.update(temp_token, 'utf8', 'hex')
+        access_token += mykey.final('hex');
+        return access_token;
+    }
+
+};
+
+
 
 function DecryptAccessToken(access_token){
     let mykey = crypto.createDecipher('aes-128-cbc', config.accessTokenEncryptionKey);
@@ -58,7 +178,7 @@ function DecryptAccessToken(access_token){
     return decryptedAccessToken;
 }
 
-exports.ValidateAccessToken = async function (username, access_token){
+async function ValidateAccessToken(username, access_token){
     Log('INFO', "Validating access token: " + access_token);
 
     return new Promise(async function(resolve, reject) {
@@ -91,36 +211,5 @@ exports.ValidateAccessToken = async function (username, access_token){
             Log('INFO', "Users access token has timed out: " + used_date);
         }
         resolve(true);
-    })
-}
-
-exports.ValidatePassword = function (username, submitted_password){
-    return new Promise((resolve, reject) => {
-        User.findOne({username: username}, function(err, user){
-            if(user) {
-                /*
-                    TODO
-                    delete this encryption when being passed encrypted passwords
-                    and change the conditional to be 'submitted_password'
-                */
-                let encrypted_password = exports.EncryptPassword(submitted_password);
-                let stored_password = user.password;
-                if(stored_password == encrypted_password){
-                    let result = true;
-                    Log('INFO', "Stored passsword matches submmitted password");
-                    resolve(result);
-                } else {
-                    let result = "Incorrect password"
-                    Log('INFO', "Stored passsword does NOT match submmitted password");
-                    reject(result);
-                }
-
-            } else {
-                reject(Error(2))
-            }
-            if(err){
-                reject(Error(8, err));
-            }
-        })
     })
 }

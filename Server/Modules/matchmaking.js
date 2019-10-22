@@ -4,16 +4,17 @@ const mongoose = require('mongoose');
 const Group = require('../Models/group');
 const Preferences = require('../Models/preferences');
 const User = require('../Models/user');
-const Utils = require('../Modules/utils');
-const Log = Utils.Log;
-const Error = Utils.Error;
+const utils = require('../Modules/utils');
+const Log = utils.Log;
+const Error = utils.Error;
 
 // local
-var exports = module.exports = {};
+module.exports = {
+    something : function(){
 
-exports.SearchForGroups = function(req, res){
+    }
+};
 
-}
 
 // get users preferences
 
