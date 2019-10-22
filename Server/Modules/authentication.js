@@ -37,7 +37,13 @@ exports.CreateAccessToken = function(username){
     temp_token += date;
     temp_token += username;
     // make sure what we're setting in the access key is also what we check against in the db
-    User.where({username: username}).update({last_login: date});
+    User.updateOne({username: username}, {last_login: date}, {upsert: true}, (err, result)=>{
+        if(err){
+            Error(13, err);
+        } else {
+            Log('INFO', "Updated last login date: " + date);
+        }
+    });
 
     let mykey = crypto.createCipher('aes-128-cbc', config.accessTokenEncryptionKey);
     let access_token = mykey.update(temp_token, 'utf8', 'hex')
@@ -45,7 +51,7 @@ exports.CreateAccessToken = function(username){
     return access_token;
 }
 
-exports.DecryptAccessToken = function(access_token){
+function DecryptAccessToken(access_token){
     let mykey = crypto.createDecipher('aes-128-cbc', config.accessTokenEncryptionKey);
     let decryptedAccessToken = mykey.update(access_token, 'hex', 'utf8')
     decryptedAccessToken += mykey.final('utf8');
@@ -53,41 +59,38 @@ exports.DecryptAccessToken = function(access_token){
 }
 
 exports.ValidateAccessToken = async function (username, access_token){
-    Log('INFO', "Validating " + username + "'s' access token: " + access_token);
+    Log('INFO', "Validating access token: " + access_token);
 
     return new Promise(async function(resolve, reject) {
-        let decrypted_token = exports.DecryptAccessToken(access_token)
+        let decrypted_token = DecryptAccessToken(access_token)
         let used_secret = decrypted_token.substring(0,8);
         let used_date = decrypted_token.substring(8,21);
         let used_username = decrypted_token.substring(21,decrypted_token.length);
-        let lastLoginDate = await GetLastLoginDate(username);
-
-        Log('INFO', "Decrypted token: " + decrypted_token);
-        Log('INFO', "Used secret: " + used_secret);
-        Log('INFO', "Used date: " + used_date);
-        Log('INFO', "Last login date: " + lastLoginDate);
-        Log('INFO', "Used username: " + used_username);
         /*
-            May tidy this up later into 1 conditional
-            or 
-            leave as is for easier repsonse building
+            TODO:
+            Tidy up custom responses for failure
         */
-        if(used_secret == config.secret){
-            if(used_date == lastLoginDate){
-                if(datetime.CheckDateTimeout(used_date)){
-                    resolve(true);
-                } else {
-                    reject(false)
-                    Log('ERROR', "Users access token has timed out: " + used_date);
-                }
-            } else {
-                reject(false);
-                Log('ERROR', "Used date(" + used_date + ") did not match last login date: " + lastLoginDate);
-            }
-        } else {
-            reject(false);
-            Log('ERROR', "Used secret was incorrect: " + used_secret);
+        if(username != used_username) {
+            Log('INFO', "Access token supplied is not for user supplied: " + username);
+            return reject(false);
         }
+
+        if(used_secret != config.secret){
+            Log('INFO', "Used secret was incorrect: " + used_secret);
+            return reject(false);
+        }
+
+        let lastLoginDate = await datetime.GetLastLoginDate(used_username);
+        if(used_date != lastLoginDate){
+            Log('INFO', "Used date(" + used_date + ") did not match last login date: " + lastLoginDate);
+            return reject(false);
+        }
+
+        if(!datetime.CheckDateTimeout(used_date)){
+            return reject(false)
+            Log('INFO', "Users access token has timed out: " + used_date);
+        }
+        resolve(true);
     })
 }
 
@@ -120,22 +123,4 @@ exports.ValidatePassword = function (username, submitted_password){
             }
         })
     })
-}
-
-function GetLastLoginDate(username){
-    Log('INFO', "Getting last login date of: " + username);
-    return new Promise((resolve, reject) => {
-        User.findOne({username: username}, function(err, user){
-            if(user) {
-                Log('INFO', "Found last login date: " + user.last_login);
-                resolve(user.last_login);
-            } else {
-                reject(Error(2));
-            }
-            if(err){
-                reject(Error(8, err));
-            }
-        })
-    })
-
 }

@@ -54,8 +54,8 @@ exports.Error = function(error_code, data){
     }
     if(errors[error_code]){
         var response = {
-            "Error Code": error_code,
-            "Message": errors[error_code].Message
+            "error_code": error_code,
+            "message": errors[error_code].Message
         }
         exports.Log(errors[error_code].Level, errors[error_code].Log, parsedData);
     } else {

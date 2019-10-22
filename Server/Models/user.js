@@ -61,19 +61,19 @@ const userSchema = new Schema({
       },
   },
   rec_created_at : {
-      type: Date,
+      type: Number,
       default: Date.now()
   },
   rec_updated_at : {
-      type: Date,
+      type: Number,
       default: Date.now()
   },
   last_login : {
-      type: Date,
+      type: Number,
       default: Date.now()
   },
   last_search : {
-      type: Date,
+      type: Number,
       default: null
   },
 });

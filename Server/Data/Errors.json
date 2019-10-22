@@ -39,7 +39,7 @@
         "Code": 6,
         "Message": "Username and/or Password supplied is incorrect",
         "Log": "User attempted to login with invalid password",
-        "Level": "ERROR"
+        "Level": "INFO"
     },
     {
         "Code": 7,
