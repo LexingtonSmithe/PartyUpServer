@@ -10,7 +10,6 @@ const Log = utils.Log;
 const Error = utils.Error;
 // local
 module.exports = {
-
     UserExists : function(username){
         Log('INFO', "Checking if user exists: " + username);
         return new Promise((resolve, reject) => {
@@ -41,11 +40,11 @@ module.exports = {
                 "error": Error(1),
             })
         }
-        let save_user = await SaveUser(req.body);
-        if(!save_user){
+        let saved_user = await SaveUser(req.body);
+        if(!saved_user){
             return res.status(500).json({
                 "status": "Error",
-                "error": Error(3, err)
+                "error": Error(16, err)
             });
         }
 
@@ -55,12 +54,31 @@ module.exports = {
             "status": "Success",
             "message": "Created User",
             "access_token": accessToken,
-            "data": addedUser // we don't need to return the user we just added
         });
     },
 
     UpdateUser : async function(req, res){
-
+        var saved_user = false;
+        try {
+            saved_user = await SaveExistingUser(req.headers.username, req.body);
+        }
+        catch(error){
+            return res.status(500).json({
+                "status": "Error",
+                "error": Error(16, err)
+            });
+        }
+        if(!saved_user){
+            return res.status(500).json({
+                "status": "Error",
+                "error": Error(16, err)
+            });
+        } else {
+            return res.json({
+                "status": "Success",
+                "message": "Updated User"
+            });
+        }
     },
 
     NumberOfUsers : function(){
@@ -75,14 +93,14 @@ module.exports = {
     }
 };
 
-function SaveUser(data) {
+function SaveNewUser(data) {
     return new Promise((resolve, reject) => {
         Log('INFO', "Saving user data");
         let newUser = new User();
         newUser.user_id = utils.GenerateUUID();
         newUser.username = data.username;
         newUser.display_name = data.display_name;
-        newUser.password = datapassword;
+        newUser.password = data.password;
         newUser.name = {
             first_name : data.name.first_name,
             last_name : data.name.last_name
@@ -109,6 +127,41 @@ function SaveUser(data) {
                 Log('ERROR', "Error saving user data", err);
                 reject(err);
             }
-        };
+        });
     });
-},
+}
+
+function SaveExistingUser(username, data) {
+    return new Promise((resolve, reject) => {
+        Log('INFO', "Updating user data");
+        let user_data = {};
+        user_data.username = data.username;
+        user_data.display_name = data.display_name;
+        user_data.password = data.password;
+        user_data.name = {
+            first_name : data.name.first_name,
+            last_name : data.name.last_name
+        };
+        user_data.contact = {
+            email : data.contact.email,
+            telephone : data.contact.telephone
+        };
+        user_data.date_of_birth = data.date_of_birth;
+        user_data.city = data.city;
+        user_data.country = data.country;
+        user_data.location = {
+            latitude : data.location.latitude,
+            longditude : data.location.longditude
+        };
+        user_data.rec_updated_at = Date.now();
+        User.findOneAndUpdate( {username: username}, user_data, function(err) {
+            if(!err) {
+                Log('INFO', 'User updated successfully');
+                resolve(true);
+            } else {
+                Log('ERROR', "Error saving user data", err);
+                reject(err);
+            }
+        });
+    });
+}

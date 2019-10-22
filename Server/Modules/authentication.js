@@ -12,6 +12,58 @@ const Log = utils.Log;
 const Error = utils.Error;
 // local
 module.exports = {
+    AuthenticationMiddleware : async function(req, res, next){
+        Log('INFO', "Authenticaticating");
+        let username = req.headers.username;
+        let access_token = req.headers.access_token;
+        if(!access_token){
+            return res.status(401).json({
+                "status": "Error",
+                "error": Error(13)
+            })
+        }
+        if(!username){
+            return res.status(401).json({
+                "status": "Error",
+                "error": Error(14)
+            })
+        }
+        try {
+            let validUser = await user.UserExists(username);
+            if(!validUser){
+                return res.status(401).json({
+                    "status": "Error",
+                    "error": Error(2)
+                })
+            }
+        }
+        catch(error){
+            console.log(error);
+            return res.status(500).json({
+                "status": "Error",
+                "error": Error(2)
+            })
+        }
+        try {
+            let validAccessToken = await ValidateAccessToken(username, access_token);
+            if(!validAccessToken){
+                return res.status(401).json({
+                    "status": "Error",
+                    "error": Error(11)
+                })
+            }
+            Log('INFO', "Successful Authentication");
+            next();
+        }
+        catch(error){
+            console.log(error);
+            return res.status(500).json({
+                "status": "Error",
+                "error": Error(11)
+            })
+        }
+    },
+
     UserLogin : async function(req, res){
         let user_exists = await user.UserExists(req.body.username)
         if(user_exists){
@@ -55,23 +107,16 @@ module.exports = {
         return new Promise((resolve, reject) => {
             User.findOne({username: username}, function(err, user){
                 if(user) {
-                    /*
-                        TODO
-                        delete this encryption when being passed encrypted passwords
-                        and change the conditional to be 'submitted_password'
-                    */
-                    let encrypted_password = that.EncryptPassword(submitted_password);
                     let stored_password = user.password;
-                    if(stored_password == encrypted_password){
+                    if(stored_password == submitted_password){
                         let result = true;
                         Log('INFO', "Stored passsword matches submmitted password");
                         resolve(result);
                     } else {
                         let result = "Incorrect password"
-                        Log('INFO', "Stored passsword does NOT match submmitted password");
+                        Log('INFO', "Stored password does NOT match submmitted password");
                         reject(result);
                     }
-
                 } else {
                     reject(Error(2))
                 }
@@ -82,52 +127,7 @@ module.exports = {
         })
     },
 
-    AuthenticationMiddleware : async function(req, res, next){
-        Log('INFO', "Authenticaticating");
-        let username = req.headers.username;
-        let access_token = req.headers.access_token;
-        if(!access_token){
-            return res.status(401).json({
-                "status": "Error",
-                "error": Error(13, err)
-            })
-        }
-        if(!username){
-            return res.status(401).json({
-                "status": "Error",
-                "error": Error(14, err)
-            })
-        }
-        Log('INFO', "User: " + username + "\nAccess_token: " + access_token)
 
-        try {
-            let validUser = await user.UserExists(username);
-            if(!validUser){
-                return res.status(401).json({
-                    "status": "Error",
-                    "error": Error(2)
-                })
-            }
-            // let validAccessToken = await ValidateAccessToken(username, access_token);
-            // if(!validAccessToken){
-            //     return res.status(401).json({
-            //         "status": "Error",
-            //         "error": Error(11)
-            //     })
-            // }
-            Log('INFO', "Successful Authentication");
-            next();
-        }
-        catch(error){
-            console.log(error);
-            console.log(user);
-            console.log(utils);
-            return res.status(500).json({
-                "status": "Error",
-                "error": Error(15, error)
-            })
-        }
-    },
 
     // not needed as the FE will be sending us encrypted passwords
     EncryptPassword : function(password){
@@ -210,6 +210,7 @@ async function ValidateAccessToken(username, access_token){
             return reject(false)
             Log('INFO', "Users access token has timed out: " + used_date);
         }
+        Log('INFO', "Successfully validated access token");
         resolve(true);
     })
 }

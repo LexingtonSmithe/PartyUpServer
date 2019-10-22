@@ -20,7 +20,7 @@
     {
         "Code": 3,
         "Message": "Something went wrong, please try again later",
-        "Log": "Error when attempting to save create user with valid user details",
+        "Log": "Error when attempting to check user preferences",
         "Level": "ERROR"
     },
     {
@@ -93,6 +93,12 @@
         "Code": 15,
         "Message": "Error validating username or access token",
         "Log": "Error validating username or access token",
+        "Level": "ERROR"
+    },
+    {
+        "Code": 16,
+        "Message": "Unable to create user at this time",
+        "Log": "Error creating new user",
         "Level": "ERROR"
     }
 ]

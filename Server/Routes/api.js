@@ -25,29 +25,34 @@ mongoose.connect(config.mongoURL, {useNewUrlParser: true}, function(err){
   }
 })
 
+mongoose.set('useFindAndModify', false);
 //----testing----
 
 
-//---------------
-
-// -------------------------- USER
-router.post('/user', function(req, res){
-  Log('INFO', 'Adding User: ' + req.body.username);
-  user.CreateUser(req, res);
-});
-
+// -------------------------- AUTH
 router.post('/auth/login', function(req, res){
   Log('INFO', 'Logging In: ' + req.body.username);
   auth.UserLogin(req, res);
 });
 
-router.get('/user/profile', function(req, res){
+// -------------------------- USER
+router.post('/user/update', Auth, function(req, res){
+  Log('INFO', 'Updating User: ' + req.header.username);
+  user.UpdateUser(req, res);
+});
+
+router.post('/user', function(req, res){
+  Log('INFO', 'Adding User: ' + req.body.username);
+  user.CreateUser(req, res);
+});
+
+router.get('/user/profile', Auth, function(req, res){
   Log('INFO', 'Logging In: ' + req.params.username);
   user.GetUserProfile(req, res);
 });
 
 // ------------------------- PREFERENCES
-router.get('/preferences/list/', function(req, res){
+router.get('/preferences/list/', Auth, function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferencesList(req, res);
 });
@@ -58,7 +63,7 @@ router.get('/preferences/', Auth, function(req, res){
 });
 
 router.post('/preferences/:username', Auth, function(req, res){
-    preferences.UpsertPreferences(req, res);
+    preferences.SubmitPreferences(req, res);
 });
 
 // ------------------------- OTHER
