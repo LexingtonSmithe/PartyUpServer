@@ -36,20 +36,27 @@ router.post('/auth/login', function(req, res){
 });
 
 // -------------------------- USER
-router.post('/user/update', Auth, function(req, res){
-  Log('INFO', 'Updating User: ' + req.header.username);
-  user.UpdateUser(req, res);
-});
-
+//CREATE
 router.post('/user', function(req, res){
   Log('INFO', 'Adding User: ' + req.body.username);
   user.CreateUser(req, res);
 });
-
+//READ
 router.get('/user/profile', Auth, function(req, res){
-  Log('INFO', 'Logging In: ' + req.params.username);
+  Log('INFO', 'Getting User Profile: ' + req.headers.username);
   user.GetUserProfile(req, res);
 });
+//UPDATE
+router.post('/user/update', Auth, function(req, res){
+  Log('INFO', 'Updating User: ' + req.headers.username);
+  user.UpdateUser(req, res);
+});
+//DELETE
+router.delete('/user/delete', Auth, function(req, res){
+  Log('INFO', 'Updating User: ' + req.headers.username);
+  user.DeleteUser(req, res);
+});
+
 
 // ------------------------- PREFERENCES
 router.get('/preferences/list/', Auth, function(req, res){
@@ -62,7 +69,8 @@ router.get('/preferences/', Auth, function(req, res){
     preferences.GetPreferences(req, res);
 });
 
-router.post('/preferences/:username', Auth, function(req, res){
+router.post('/preferences/', Auth, function(req, res){
+    Log('INFO', 'Submitting Preferences');
     preferences.SubmitPreferences(req, res);
 });
 

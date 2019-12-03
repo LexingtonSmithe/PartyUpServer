@@ -3,13 +3,11 @@ const mongoose = require('mongoose');
 // internal
 const config = require('../../config.json');
 const Preferences = require('../Models/preferences');
-const User = require('../Models/user');
-const user = require('./user');
 const utils = require('./utils');
-const auth = require('./authentication');
 const Log = utils.Log;
 const Error = utils.Error;
 const defaultPreferencesList = require('../Data/preferences');
+
 // local
 module.exports = {
     GetUserPreferences: function(username) {
@@ -52,6 +50,23 @@ module.exports = {
             })
         })
     },
+
+    DeleteUserPreferences: function(username) {
+        Log('INFO', "Deleting for preferences for user: " + username);
+        Preferences.findOneAndDelete({username: username},function(err, response) {
+            if(response != null) {
+                Log('INFO', "Preferences Found");
+                return true;
+            } else {
+                Log('INFO', "No Preferences Found");
+                return false;
+            }
+            if(err) {
+                return Error(8, err);
+            }
+        })
+    },
+
     GetPreferences: async function(req, res) {
         let username = req.headers.username;
         await this.GetUserPreferences(username)

@@ -6,17 +6,21 @@ const mongoose = require('mongoose');
 const config = require('../../config.json');
 const User = require('../Models/user');
 const utils = require('./utils');
+const preferences = require('./preferences');
 const Log = utils.Log;
 const Error = utils.Error;
+
 // local
+
 module.exports = {
+
     UserExists : function(username){
         Log('INFO', "Checking if user exists: " + username);
         return new Promise((resolve, reject) => {
             User.findOne({username: username}, function(err, user){
                 if(user) {
                     Log('INFO', "User exists: " + username)
-                    let result = true;
+                    let result = user;
                     resolve(result);
                 } else {
                     Log('INFO', "User does not exist");
@@ -31,21 +35,28 @@ module.exports = {
     },
 
     CreateUser : async function(req, res){
-        let username = req.body.username;
-        Log('INFO', "Creating user");
-        let user_exists = await this.UserExists(username);
+        Log('INFO', "Validating Supplied User Data");
+        let validated_user = ValidateUserData(req.body);
+        if(validated_user.error){
+            return res.status(400).json({
+                "status": "Error",
+                "error": {
+                    "id": validated_user.id,
+                    "message": validated_user.message
+                }
+            })
+        };
+
+        let user_exists = await this.UserExists(req.body.username);
         if(user_exists){
             return res.status(400).json({
                 "status": "Error",
-                "error": Error(1),
+                "error": Error(1)
             })
         }
-        let valid_user = ValidateUserData(req.body);
-        if(valid_user.error){
-            return res.status(400).json(InvalidUser(valid_user.id))
-        };
 
-        let saved_user = await SaveUser(req.body);
+        Log('INFO', "Saving");
+        let saved_user = await SaveNewUser(req.body);
         if(!saved_user){
             return res.status(500).json({
                 "status": "Error",
@@ -53,16 +64,24 @@ module.exports = {
             });
         }
 
-        let access_token = await auth.CreateAccessToken(username);
         Log('INFO', 'User created successfully');
         return res.json({
             "status": "Success",
-            "message": "Created User",
-            "access_token": accessToken,
+            "message": "Created User"
         });
     },
 
     UpdateUser : async function(req, res){
+        let validated_user = ValidateUserData(req.body);
+        if(validated_user.error){
+            return res.status(400).json({
+                "status": "Error",
+                "error": {
+                    "id": validated_user.id,
+                    "message": validated_user.message
+                }
+            })
+        };
         var saved_user = false;
         try {
             saved_user = await SaveExistingUser(req.headers.username, req.body);
@@ -86,6 +105,64 @@ module.exports = {
         }
     },
 
+    GetUserProfile : async function(req, res){
+        Log('INFO', "Retrieving Supplied Users Data");
+        User.findOne({username: req.headers.username}, function(err, user){
+            if(user) {
+                Log('INFO', "User data found: " + req.headers.username)
+                return res.json({
+                    "status": "Success",
+                    "data": user
+                });
+            } else {
+                Log('INFO', "User data not found");
+                return res.status(400).json({
+                    "status": "Error",
+                    "message": Error(2)
+                });
+            }
+            if(err){
+                return res.status(400).json({
+                    "status": "Success",
+                    "message": Error(8)
+                });
+            }
+        })
+    },
+
+    DeleteUser : async function(req, res){
+        Log('INFO', "Deleting User");
+        let update = {
+            username : utils.GenerateUUID(),
+            password : utils.GenerateUUID(),
+            soft_delete : true
+        }
+        
+        preferences.DeleteUserPreferences(req.headers.username);
+
+        User.findOneAndUpdate({username: req.headers.username},update, function(err, user){
+            if(user) {
+                Log('INFO', "User data found: " + req.headers.username)
+                return res.json({
+                    "status": "Success",
+                    "message": "User Deleted"
+                });
+            } else {
+                Log('INFO', "User data not found");
+                return res.status(400).json({
+                    "status": "Error",
+                    "message": Error(2)
+                });
+            }
+            if(err){
+                return res.status(400).json({
+                    "status": "Success",
+                    "message": Error(8)
+                });
+            }
+        })
+    },
+
     NumberOfUsers : function(){
         return new Promise((resolve, reject) => {
             let numberOfUsers = User.estimatedDocumentCount();
@@ -96,156 +173,17 @@ module.exports = {
             }
         })
     }
+
 };
 
-function CreateNewUser(data){
-    let result
-    if(!data.username){
-        result = {
-            error: true,
-            id: 1,
-            message: "No Username Suppplied"
-        }
-        return result
+function MapUserDataFromRequest(data, new_user){
+    Log('INFO', "Mapping User Data From Request, new_user: " + new_user);
+    if(new_user){
+        user = new User;
+        user.user_id = utils.GenerateUUID();
+    } else {
+        user = {}
     }
-
-    if(!data.display_name){
-        result = {
-            error: true,
-            id: 2,
-            message: "No Display Name Supplied"
-        }
-        return result
-    }
-
-    if(CheckDisplayNameForProfanity(data.display_name)){
-        result = {
-            error: true,
-            id: 3,
-            message: "No Display Name Supplied"
-        }
-        return result
-    }
-
-    if(!data.password){
-        result = {
-            error: true,
-            id: 4,
-            message: "No Password Supplied"
-        }
-        return result
-    }
-
-    if(!data.name){
-        result = {
-            error: true,
-            id: 5,
-            message: "No Names Supplied"
-        }
-        return result
-    }
-
-    if(!data.name.first_name){
-        result = {
-            error: true,
-            id: 6,
-            message: "No First Name Supplied"
-        }
-        return result
-    }
-
-    if(!data.name.last_name){
-        result = {
-            error: true,
-            id: 7,
-            message: "No Last Name Supplied"
-        }
-        return result
-    }
-
-    if(!data.contact){
-        result = {
-            error: true,
-            id: 8,
-            message: "No Contact Details Supplied"
-        }
-        return result
-    }
-
-    if(!data.contact.email){
-        result = {
-            error: true,
-            id: 9,
-            message: "No Email Supplied"
-        }
-        return result
-    }
-
-    if(!data.contact.telephone){
-        result = {
-            error: true,
-            id: 10,
-            message: "No Telephone Supplied"
-        }
-        return result
-    }
-
-    if(!data.date_of_birth){
-        result = {
-            error: true,
-            id: 11,
-            message: "No Date Of Birth Supplied"
-        }
-        return result
-    }
-
-    if(!data.city){
-        result = {
-            error: true,
-            id: 12,
-            message: "No City Supplied"
-        }
-        return result
-    }
-
-    if(!data.country){
-        result = {
-            error: true,
-            id: 13,
-            message: "No Country Supplied"
-        }
-        return result
-    }
-
-    if(!data.location){
-        result = {
-            error: true,
-            id: 14,
-            message: "No Location Supplied"
-        }
-        return result
-    }
-
-    if(!data.location.latitude){
-        result = {
-            error: true,
-            id: 15,
-            message: "No Latitude Supplied"
-        }
-        return result
-    }
-
-    if(!data.location.longditude){
-        result = {
-            error: true,
-            id: 16,
-            message: "No Longditude Supplied"
-        }
-        return result
-    }
-
-    let user = {};
-    user.user_id = utils.GenerateUUID();
     user.username = data.username;
     user.display_name = data.display_name;
     user.password = data.password;
@@ -264,17 +202,14 @@ function CreateNewUser(data){
         latitude : data.location.latitude,
         longditude : data.location.longditude
     };
-    user.rec_created_at = Date.now();
-    user.rec_updated_at = Date.now();
-    user.last_login = Date.now();
     user.last_search = null;
     return user;
-}
+};
 
-function SaveNewUser(data) {
+function SaveNewUser(data){
     return new Promise((resolve, reject) => {
         Log('INFO', "Saving user data");
-        let newUser = CreateNewUser(data);
+        let newUser = MapUserDataFromRequest(data, true);
         newUser.save(function(err) {
             if(!err) {
                 resolve(true);
@@ -284,30 +219,12 @@ function SaveNewUser(data) {
             }
         });
     });
-}
+};
 
-function SaveExistingUser(username, data) {
+function SaveExistingUser(username, data){
     return new Promise((resolve, reject) => {
         Log('INFO', "Updating user data");
-        let user_data = {};
-        user_data.username = data.username;
-        user_data.display_name = data.display_name;
-        user_data.password = data.password;
-        user_data.name = {
-            first_name : data.name.first_name,
-            last_name : data.name.last_name
-        };
-        user_data.contact = {
-            email : data.contact.email,
-            telephone : data.contact.telephone
-        };
-        user_data.date_of_birth = data.date_of_birth;
-        user_data.city = data.city;
-        user_data.country = data.country;
-        user_data.location = {
-            latitude : data.location.latitude,
-            longditude : data.location.longditude
-        };
+        let user_data = MapUserDataFromRequest(data, false);
         user_data.rec_updated_at = Date.now();
         User.findOneAndUpdate( {username: username}, user_data, function(err) {
             if(!err) {
@@ -319,9 +236,372 @@ function SaveExistingUser(username, data) {
             }
         });
     });
-}
+};
+
+function ValidateUserData(data){
+
+    let result = GetValidationError(0);
+
+    if(!data.username){
+        result = GetValidationError(1);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.username != 'string'){
+        result = GetValidationError(2);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.display_name){
+        result = GetValidationError(3);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.display_name != 'string'){
+        result = GetValidationError(4);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(CheckDisplayNameForProfanity(data.display_name)){
+        result = GetValidationError(5)
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.password){
+        result = GetValidationError(6);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.password != 'string'){
+        result = GetValidationError(7);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.name){
+        result = GetValidationError(8);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.name != 'object'){
+        result = GetValidationError(9);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.name.first_name){
+        result = GetValidationError(10);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+    if(typeof data.name.first_name != 'string'){
+        result = GetValidationError(11);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.name.last_name){
+        result = result = GetValidationError(12);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.name.last_name != 'string'){
+        result = GetValidationError(13);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.contact){
+        result = GetValidationError(14);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.contact != 'object'){
+        result = GetValidationError(15);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.contact.email){
+        result = GetValidationError(16);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.contact.email != 'string'){
+        result = GetValidationError(17);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.contact.telephone){
+        result = GetValidationError(18);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.contact.telephone != 'string'){
+
+        result = GetValidationError(19);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.date_of_birth){
+        result = GetValidationError(21)
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.date_of_birth != 'string'){
+        result = GetValidationError(22);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.city){
+        result = GetValidationError(23);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.city != 'string'){
+        result = GetValidationError(24);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.country){
+        result = GetValidationError(25);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.country != 'string'){
+        result = GetValidationError(26);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.location){
+        result = GetValidationError(27);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.location != 'object'){
+        result = GetValidationError(28);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.location.latitude){
+        result = GetValidationError(29);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.location.latitude != 'number'){
+        result = GetValidationError(30);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(!data.location.longditude){
+        result = GetValidationError(31);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+
+    if(typeof data.location.longditude != 'number'){
+        result = GetValidationError(32);
+        Log('INFO', "Invalid User Data: " + result.message);
+        return result
+    }
+    return result;
+};
 
 function CheckDisplayNameForProfanity(data){
     // TODO: make this an actual thing, maybe also include other validation beyond profanity
     return false;
+};
+
+function GetValidationError(id){
+    let errors = [
+        {
+            error: false,
+            id: 0,
+            message: "Supplied Data Is Present And Correct"
+        },
+        {
+            error: true,
+            id: 1,
+            message: "No Username Supplied"
+        },
+        {
+            error: true,
+            id: 2,
+            message: "Invalid Username Supplied"
+        },
+        {
+            error: true,
+            id: 3,
+            message: "No Display Name Supplied"
+        },
+        {
+            error: true,
+            id: 4,
+            message: "Invalid Display Name Supplied"
+        },
+        {
+            error: true,
+            id: 5,
+            message: "Display Name Is Inappropriate"
+        },
+        {
+            error: true,
+            id: 6,
+            message: "No Password Supplied"
+        },
+        {
+            error: true,
+            id: 7,
+            message: "Invalid Password Supplied"
+        },
+        {
+            error: true,
+            id: 8,
+            message: "No Names Supplied"
+        },
+        {
+            error: true,
+            id: 9,
+            message: "Invalid Names Supplied"
+        },
+        {
+            error: true,
+            id: 10,
+            message: "No First Name Supplied"
+        },
+        {
+            error: true,
+            id: 11,
+            message: "Invalid First Name Supplied"
+        },
+        {
+            error: true,
+            id: 12,
+            message: "No Last Name Supplied"
+        },
+        {
+            error: true,
+            id: 13,
+            message: "Invalid Last Name Supplied"
+        },
+        {
+            error: true,
+            id: 14,
+            message: "No Contact Details Supplied"
+        },
+        {
+            error: true,
+            id: 15,
+            message: "Invalid Contact Details Supplied"
+        },
+        {
+            error: true,
+            id: 16,
+            message: "No Email Supplied"
+        },
+        {
+            error: true,
+            id: 17,
+            message: "Invalid Email Supplied"
+        },
+        {
+            error: true,
+            id: 18,
+            message: "No Telephone Supplied"
+        },
+        {
+            error: true,
+            id: 19,
+            message: "Invalid Telephone Supplied"
+        },
+        {
+            error: true,
+            id: 20,
+            message: "No Date Of Birth Supplied"
+        },
+        {
+            error: true,
+            id: 21,
+            message: "Invalid Date Of Birth Supplied"
+        },
+        {
+            error: true,
+            id: 22,
+            message: "No Username Supplied"
+        },
+        {
+            error: true,
+            id: 23,
+            message: "No City Supplied"
+        },
+        {
+            error: true,
+            id: 24,
+            message: "Invalid City Supplied"
+        },
+        {
+            error: true,
+            id: 25,
+            message: "No Country Supplied"
+        },
+        {
+            error: true,
+            id: 26,
+            message: "Invalid Country Supplied"
+        },
+        {
+            error: true,
+            id: 27,
+            message: "No Location Supplied"
+        },
+        {
+            error: true,
+            id: 28,
+            message: "Invalid Location Supplied"
+        },
+        {
+            error: true,
+            id: 29,
+            message: "No Latitude Supplied"
+        },
+        {
+            error: true,
+            id: 30,
+            message: "Invalid Latitude Supplied"
+        },
+        {
+            error: true,
+            id: 31,
+            message: "No Longditude Supplied"
+        },
+        {
+            error: true,
+            id: 32,
+            message: "Invalid Longditude Supplied"
+        }
+    ]
+    return errors[id];
 }

@@ -10,8 +10,11 @@ const utils = require('./utils');
 const datetime = require('./datetime');
 const Log = utils.Log;
 const Error = utils.Error;
+
 // local
+
 module.exports = {
+
     AuthenticationMiddleware : async function(req, res, next){
         Log('INFO', "Authenticaticating");
         let username = req.headers.username;
@@ -38,10 +41,9 @@ module.exports = {
             }
         }
         catch(error){
-            console.log(error);
-            return res.status(500).json({
+            return res.status(401).json({
                 "status": "Error",
-                "error": Error(2)
+                "error": Error(2, error)
             })
         }
         try {
@@ -65,69 +67,30 @@ module.exports = {
     },
 
     UserLogin : async function(req, res){
-        let user_exists = await user.UserExists(req.body.username)
-        if(user_exists){
-            var passwordValid;
-            try {
-                passwordValid = await this.ValidatePassword(req.body.username, req.body.password)
-                if(passwordValid){
-                    Log('INFO', "Password valid creating access token");
-                    let access_token = await this.CreateAccessToken(req.body.username);
-                    res.json({
-                        "status": "Success",
-                        "message": "User logged in",
-                        "access_token": access_token
-                    })
-                }
-            }
-            catch(err){
-                if(err == "Incorrect password"){
-                    res.status(403).json({
-                        "status": "Error",
-                        "error": Error(6)
-                    })
-                } else {
-                    res.status(400).json({
-                        "status": "Error",
-                        "error": Error(12, err)
-                    });
-                }
 
+        let user_data = await user.UserExists(req.body.username);
+        if(user_data){
+            if(req.body.password == user_data.password){
+                Log('INFO', "Password valid creating access token");
+                let access_token = await this.CreateAccessToken(req.body.username);
+                return res.json({
+                    "status": "Success",
+                    "message": "User logged in",
+                    "access_token": access_token
+                })
+            } else {
+                return res.status(403).json({
+                    "status": "Error",
+                    "error": Error(6)
+                })
             }
         } else {
-            res.status(403).json({
+            return res.status(400).json({
                 "status": "Error",
-                "error": Error(5)
+                "error": Error(2)
             })
         }
     },
-
-    ValidatePassword : function (username, submitted_password){
-        var that = this;
-        return new Promise((resolve, reject) => {
-            User.findOne({username: username}, function(err, user){
-                if(user) {
-                    let stored_password = user.password;
-                    if(stored_password == submitted_password){
-                        let result = true;
-                        Log('INFO', "Stored passsword matches submmitted password");
-                        resolve(result);
-                    } else {
-                        let result = "Incorrect password"
-                        Log('INFO', "Stored password does NOT match submmitted password");
-                        reject(result);
-                    }
-                } else {
-                    reject(Error(2))
-                }
-                if(err){
-                    reject(Error(8, err));
-                }
-            })
-        })
-    },
-
-
 
     // not needed as the FE will be sending us encrypted passwords
     EncryptPassword : function(password){
@@ -166,23 +129,30 @@ module.exports = {
         access_token += mykey.final('hex');
         return access_token;
     }
-
 };
 
 
 
 function DecryptAccessToken(access_token){
-    let mykey = crypto.createDecipher('aes-128-cbc', config.accessTokenEncryptionKey);
-    let decryptedAccessToken = mykey.update(access_token, 'hex', 'utf8')
-    decryptedAccessToken += mykey.final('utf8');
-    return decryptedAccessToken;
-}
+    try {
+        let mykey = crypto.createDecipher('aes-128-cbc', config.accessTokenEncryptionKey);
+        let decryptedAccessToken = mykey.update(access_token, 'hex', 'utf8')
+        decryptedAccessToken += mykey.final('utf8');
+        return decryptedAccessToken;
+    }
+    catch(err){
+        return false;
+    }
+};
 
 async function ValidateAccessToken(username, access_token){
     Log('INFO', "Validating access token: " + access_token);
 
     return new Promise(async function(resolve, reject) {
         let decrypted_token = DecryptAccessToken(access_token)
+        if(!decrypted_token){
+            return reject("Invalid Access Token");
+        }
         let used_secret = decrypted_token.substring(0,8);
         let used_date = decrypted_token.substring(8,21);
         let used_username = decrypted_token.substring(21,decrypted_token.length);
@@ -213,4 +183,4 @@ async function ValidateAccessToken(username, access_token){
         Log('INFO', "Successfully validated access token");
         resolve(true);
     })
-}
+};

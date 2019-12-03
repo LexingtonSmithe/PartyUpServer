@@ -76,6 +76,10 @@ const userSchema = new Schema({
       type: Number,
       default: null
   },
+  soft_delete : {
+      type: Boolean,
+      default: false
+  }
 });
 
 module.exports = mongoose.model('user', userSchema);
