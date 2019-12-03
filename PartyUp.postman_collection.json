@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "9625e13f-ff78-4ed6-9c3f-93a4fb4eda6a",
+		"_postman_id": "38e2d46d-c9cc-428e-8a94-fe627c2385e9",
 		"name": "PartyUp!",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -36,7 +36,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"username\" : \"Lex\",\n  \"display_name\" : \"Lexington Smithe\",\n  \"password\" : \"password\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Lowndes\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"String\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
+					"raw": "{\n  \"username\" : \"{{username}}\",\n  \"display_name\" : \"Lexington Smithe\",\n  \"password\" : \"{{password}}\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Lowndes\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"0161123456789\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -56,6 +56,120 @@
 			"response": []
 		},
 		{
+			"name": "User",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "username",
+						"value": "{{username}}",
+						"type": "text"
+					},
+					{
+						"key": "access_token",
+						"value": "{{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/user/profile",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"user",
+						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User - Update",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "username",
+						"value": "{{username}}",
+						"type": "text"
+					},
+					{
+						"key": "access_token",
+						"value": "{{access_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"username\" : \"{{username}}\",\n  \"display_name\" : \"Lexington Smithe\",\n  \"password\" : \"{{password}}\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Brown\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"String\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{url}}/user/update",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"user",
+						"update"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "User",
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "username",
+						"value": "{{username}}",
+						"type": "text"
+					},
+					{
+						"key": "access_token",
+						"value": "{{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/user/delete",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"user",
+						"delete"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Login",
 			"event": [
 				{
@@ -64,7 +178,7 @@
 						"id": "306a5d4b-67a8-4959-bb30-7c19f7e7f1e9",
 						"exec": [
 							"let response = pm.response.json(); ",
-							"pm.environment.set(\"access_token\", response.AccessToken);",
+							"pm.environment.set(\"access_token\", response.access_token);",
 							""
 						],
 						"type": "text/javascript"
@@ -83,15 +197,15 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"username\" : \"Lex\",\n  \"password\" : \"password\"\n}"
+					"raw": "{\n  \"username\" : \"{{username}}\",\n  \"password\" : \"{{password}}\"\n}"
 				},
 				"url": {
-					"raw": "{{url}}/user/login",
+					"raw": "{{url}}/auth/login",
 					"host": [
 						"{{url}}"
 					],
 					"path": [
-						"user",
+						"auth",
 						"login"
 					]
 				}
@@ -108,6 +222,16 @@
 						"name": "Content-Type",
 						"value": "application/json",
 						"type": "text"
+					},
+					{
+						"key": "username",
+						"value": "{{username}}",
+						"type": "text"
+					},
+					{
+						"key": "access_token",
+						"value": "{{access_token}}",
+						"type": "text"
 					}
 				],
 				"body": {
@@ -120,13 +244,12 @@
 					}
 				},
 				"url": {
-					"raw": "{{url}}/preferences/Lex",
+					"raw": "{{url}}/preferences",
 					"host": [
 						"{{url}}"
 					],
 					"path": [
-						"preferences",
-						"Lex"
+						"preferences"
 					]
 				}
 			},
@@ -169,5 +292,6 @@
 			},
 			"response": []
 		}
-	]
+	],
+	"protocolProfileBehavior": {}
 }
