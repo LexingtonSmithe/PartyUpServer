@@ -12,18 +12,4 @@ describe('User Integration Tests', function() {
       expect(foo).to.equal(bar);
       done();
   });
-
-  it('Should Decrypt the password', function (done) {
-      var foo = 1;
-      var bar = 1;
-      expect(foo).to.equal(bar);
-      done();
-  });
-
-  it('Should create an Access Token and decrypt it', function (done) {
-      var foo = 1;
-      var bar = 1;
-      expect(foo).to.equal(bar);
-      done();
-  });
 });

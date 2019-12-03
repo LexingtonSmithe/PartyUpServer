@@ -24,17 +24,17 @@ exports.Log = function(level, message, data){
             console.log(level + ": " + message + '\n' + parsedData);
         break;
         case "INFO":
-            if(type == "INFO"){
+            if(level == "INFO"){
                 console.log(level + ": " + message+ '\n', parsedData);
             }
         break;
         case "ERROR":
-            if(type == "ERROR"){
+            if(level == "ERROR"){
                 console.log(level + ": " + message+ '\n', parsedData);
             }
         break;
         case "DEBUG":
-            if(type == "DEBUG"){
+            if(level == "DEBUG"){
                 console.log(level + ": " + message+ '\n', parsedData);
             }
         break;

@@ -36,7 +36,7 @@ module.exports = {
 
     CreateUser : async function(req, res){
         Log('INFO', "Validating Supplied User Data");
-        let validated_user = ValidateUserData(req.body);
+        let validated_user = this.ValidateUserData(req.body);
         if(validated_user.error){
             return res.status(400).json({
                 "status": "Error",
@@ -72,7 +72,7 @@ module.exports = {
     },
 
     UpdateUser : async function(req, res){
-        let validated_user = ValidateUserData(req.body);
+        let validated_user = this.ValidateUserData(req.body);
         if(validated_user.error){
             return res.status(400).json({
                 "status": "Error",
@@ -137,7 +137,7 @@ module.exports = {
             password : utils.GenerateUUID(),
             soft_delete : true
         }
-        
+
         preferences.DeleteUserPreferences(req.headers.username);
 
         User.findOneAndUpdate({username: req.headers.username},update, function(err, user){
@@ -161,6 +161,197 @@ module.exports = {
                 });
             }
         })
+    },
+
+    ValidateUserData : function(data) {
+        let result = GetValidationError(0);
+
+        if(!data.username){
+            result = GetValidationError(1);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.username != 'string'){
+            result = GetValidationError(2);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.display_name){
+            result = GetValidationError(3);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.display_name != 'string'){
+            result = GetValidationError(4);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(CheckDisplayNameForProfanity(data.display_name)){
+            result = GetValidationError(5)
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.password){
+            result = GetValidationError(6);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.password != 'string'){
+            result = GetValidationError(7);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.name){
+            result = GetValidationError(8);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.name != 'object'){
+            result = GetValidationError(9);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.name.first_name){
+            result = GetValidationError(10);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+        if(typeof data.name.first_name != 'string'){
+            result = GetValidationError(11);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.name.last_name){
+            result = result = GetValidationError(12);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.name.last_name != 'string'){
+            result = GetValidationError(13);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.contact){
+            result = GetValidationError(14);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.contact != 'object'){
+            result = GetValidationError(15);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.contact.email){
+            result = GetValidationError(16);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.contact.email != 'string'){
+            result = GetValidationError(17);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.contact.telephone){
+            result = GetValidationError(18);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.contact.telephone != 'string'){
+
+            result = GetValidationError(19);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.date_of_birth){
+            result = GetValidationError(21)
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.date_of_birth != 'string'){
+            result = GetValidationError(22);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.city){
+            result = GetValidationError(23);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.city != 'string'){
+            result = GetValidationError(24);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.country){
+            result = GetValidationError(25);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.country != 'string'){
+            result = GetValidationError(26);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.location){
+            result = GetValidationError(27);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.location != 'object'){
+            result = GetValidationError(28);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.location.latitude){
+            result = GetValidationError(29);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.location.latitude != 'number'){
+            result = GetValidationError(30);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(!data.location.longditude){
+            result = GetValidationError(31);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+
+        if(typeof data.location.longditude != 'number'){
+            result = GetValidationError(32);
+            Log('INFO', "Invalid User Data: " + result.message);
+            return result
+        }
+        return result;
     },
 
     NumberOfUsers : function(){
@@ -236,198 +427,6 @@ function SaveExistingUser(username, data){
             }
         });
     });
-};
-
-function ValidateUserData(data){
-
-    let result = GetValidationError(0);
-
-    if(!data.username){
-        result = GetValidationError(1);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.username != 'string'){
-        result = GetValidationError(2);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.display_name){
-        result = GetValidationError(3);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.display_name != 'string'){
-        result = GetValidationError(4);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(CheckDisplayNameForProfanity(data.display_name)){
-        result = GetValidationError(5)
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.password){
-        result = GetValidationError(6);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.password != 'string'){
-        result = GetValidationError(7);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.name){
-        result = GetValidationError(8);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.name != 'object'){
-        result = GetValidationError(9);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.name.first_name){
-        result = GetValidationError(10);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-    if(typeof data.name.first_name != 'string'){
-        result = GetValidationError(11);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.name.last_name){
-        result = result = GetValidationError(12);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.name.last_name != 'string'){
-        result = GetValidationError(13);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.contact){
-        result = GetValidationError(14);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.contact != 'object'){
-        result = GetValidationError(15);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.contact.email){
-        result = GetValidationError(16);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.contact.email != 'string'){
-        result = GetValidationError(17);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.contact.telephone){
-        result = GetValidationError(18);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.contact.telephone != 'string'){
-
-        result = GetValidationError(19);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.date_of_birth){
-        result = GetValidationError(21)
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.date_of_birth != 'string'){
-        result = GetValidationError(22);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.city){
-        result = GetValidationError(23);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.city != 'string'){
-        result = GetValidationError(24);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.country){
-        result = GetValidationError(25);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.country != 'string'){
-        result = GetValidationError(26);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.location){
-        result = GetValidationError(27);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.location != 'object'){
-        result = GetValidationError(28);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.location.latitude){
-        result = GetValidationError(29);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.location.latitude != 'number'){
-        result = GetValidationError(30);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(!data.location.longditude){
-        result = GetValidationError(31);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-
-    if(typeof data.location.longditude != 'number'){
-        result = GetValidationError(32);
-        Log('INFO', "Invalid User Data: " + result.message);
-        return result
-    }
-    return result;
 };
 
 function CheckDisplayNameForProfanity(data){
