@@ -100,5 +100,11 @@
         "Message": "Unable to create user at this time",
         "Log": "Error creating new user",
         "Level": "ERROR"
+    },
+    {
+        "Code": 17,
+        "Message": "Unauthorized Access",
+        "Log": "User attempted to access another users data using the requestors access token",
+        "Level": "WARN"
     }
 ]

@@ -6,11 +6,28 @@ const preferencesSchema = new Schema({
     systems: String,
     device: String,
     role: String,
-    party_size : String,
-    age : String,
-    days_free : String,
-    times_free_start : String,
-    times_free_end : String,
+    party_size : Number,
+    age : {
+        min_age : {
+            type: Number,
+            default: null
+        },
+        max_age : {
+            type: Number,
+            default: null
+        }
+    },
+    days_available : [String],
+    time_available : {
+        start : {
+            type: String,
+            default: null
+        },
+        end : {
+            type: String,
+            default: null
+        }
+    },
     distance: Number
 });
 

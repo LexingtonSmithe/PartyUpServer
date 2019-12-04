@@ -15,7 +15,8 @@ const Error = utils.Error;
 
 module.exports = {
 
-    AuthenticationMiddleware : async function(req, res, next){
+    OpenAuthenticationMiddleware : async function(req, res, next){
+        console.log(req);
         Log('INFO', "Authenticaticating");
         let username = req.headers.username;
         let access_token = req.headers.access_token;
@@ -48,6 +49,64 @@ module.exports = {
         }
         try {
             let validAccessToken = await ValidateAccessToken(username, access_token);
+            if(!validAccessToken){
+                return res.status(401).json({
+                    "status": "Error",
+                    "error": Error(11)
+                })
+            }
+            Log('INFO', "Successful Authentication");
+            next();
+        }
+        catch(error){
+            console.log(error);
+            return res.status(500).json({
+                "status": "Error",
+                "error": Error(11)
+            })
+        }
+    },
+
+    ClosedAuthenticationMiddleware : async function(req, res, next){
+        Log('INFO', "Authenticaticating");
+        let header_username = req.headers.username;
+        let body_username = req.body.username;
+        let access_token = req.headers.access_token;
+        if(header_username != body_username){
+            return res.status(403).json({
+                "status": "Error",
+                "error": Error(17)
+            })
+        }
+        if(!access_token){
+            return res.status(401).json({
+                "status": "Error",
+                "error": Error(13)
+            })
+        }
+        if(!header_username){
+            return res.status(401).json({
+                "status": "Error",
+                "error": Error(14)
+            })
+        }
+        try {
+            let validUser = await user.UserExists(header_username);
+            if(!validUser){
+                return res.status(401).json({
+                    "status": "Error",
+                    "error": Error(2)
+                })
+            }
+        }
+        catch(error){
+            return res.status(401).json({
+                "status": "Error",
+                "error": Error(2, error)
+            })
+        }
+        try {
+            let validAccessToken = await ValidateAccessToken(header_username, access_token);
             if(!validAccessToken){
                 return res.status(401).json({
                     "status": "Error",

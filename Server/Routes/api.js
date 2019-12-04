@@ -9,7 +9,8 @@ const preferences = require('../Modules/preferences');
 const user = require('../Modules/user');
 const utils = require('../Modules/utils');
 const auth = require('../Modules/authentication');
-const Auth = auth.AuthenticationMiddleware;
+const ClosedAuth = auth.ClosedAuthenticationMiddleware;
+const OpenAuth = auth.OpenAuthenticationMiddleware;
 const Log = utils.Log;
 const Error = utils.Error;
 
@@ -42,34 +43,34 @@ router.post('/user', function(req, res){
   user.CreateUser(req, res);
 });
 //READ
-router.get('/user/profile', Auth, function(req, res){
-  Log('INFO', 'Getting User Profile: ' + req.headers.username);
-  user.GetUserProfile(req, res);
+router.get('/user/profile', OpenAuth, function(req, res){
+  Log('INFO', 'Getting User Data: ' + req.headers.username);
+  user.GetUser(req, res);
 });
 //UPDATE
-router.post('/user/update', Auth, function(req, res){
+router.post('/user/update', ClosedAuth, function(req, res){
   Log('INFO', 'Updating User: ' + req.headers.username);
   user.UpdateUser(req, res);
 });
 //DELETE
-router.delete('/user/delete', Auth, function(req, res){
+router.delete('/user/delete', OpenAuth, function(req, res){
   Log('INFO', 'Updating User: ' + req.headers.username);
   user.DeleteUser(req, res);
 });
 
 
 // ------------------------- PREFERENCES
-router.get('/preferences/list/', Auth, function(req, res){
+router.get('/preferences/list/', OpenAuth, function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferencesList(req, res);
 });
 
-router.get('/preferences/', Auth, function(req, res){
+router.get('/preferences/', ClosedAuth, function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferences(req, res);
 });
 
-router.post('/preferences/', Auth, function(req, res){
+router.post('/preferences/', ClosedAuth, function(req, res){
     Log('INFO', 'Submitting Preferences');
     preferences.SubmitPreferences(req, res);
 });
