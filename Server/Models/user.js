@@ -10,13 +10,17 @@ const userSchema = new Schema({
       type: String,
       default: null
   },
+  password : {
+      type: String,
+      default: null
+  },
   display_name : {
       type: String,
       default: null
   },
-  password : {
-      type: String,
-      default: null
+  bio : {
+    type : String,
+    default  : null
   },
   name: {
       first_name : {

@@ -9,8 +9,9 @@ describe('User Validation Tests', function() {
 
   var test_user = {
       "username" : "testusername",
-      "display_name" : "testdisplayname",
       "password" : "testpassword",
+      "display_name" : "testdisplayname",
+      "bio": "test bio description of play style and or character ideas",
       "name": {
           "first_name" : "test",
           "last_name" : "testerson"
@@ -39,7 +40,7 @@ describe('User Validation Tests', function() {
         let user_data = test_user;
         delete username = undefined;
         let result = user.ValidateUserData(user_data);
-        expect(result.message).to.equal("No Username Supplied");
+        expect(result.message).to.equal("Username supplied is either Invalid or Missing");
         done();
     })
 

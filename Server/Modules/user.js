@@ -1,6 +1,9 @@
 // external
 const crypto = require('crypto');
 const mongoose = require('mongoose');
+const Profanity = require('bad-words');
+const profanity = new Profanity();
+
 
 // internal
 const config = require('../../config.json');
@@ -170,63 +173,71 @@ module.exports = {
             return result = GetValidationError(1);
         }
 
-        if(!utils.DataValidator(data.display_name, 'string', 3, 12)){
+        if(!utils.DataValidator(data.password, 'string', 8, 15)){
             return result = GetValidationError(2);
         }
 
-        if(!utils.DataValidator(data.password, 'string', 8, 15)){
+        if(!utils.DataValidator(data.display_name, 'string', 3, 12)){
             return result = GetValidationError(3);
         }
 
-        if(!utils.DataValidator(data.name, 'object', 2)){
+        if(!utils.DataValidator(data.bio, 'string', 32, 255)){
             return result = GetValidationError(4);
         }
 
-        if(!utils.DataValidator(data.name.first_name, 'string', 3, 12)){
+        if(!utils.DataValidator(data.name, 'object', 2)){
             return result = GetValidationError(5);
         }
 
-        if(!utils.DataValidator(data.name.last_name, 'string', 3, 12)){
+        if(!utils.DataValidator(data.name.first_name, 'string', 3, 12)){
             return result = GetValidationError(6);
         }
 
-        if(!utils.DataValidator(data.contact, 'object', 2)){
+        if(!utils.DataValidator(data.name.last_name, 'string', 3, 12)){
             return result = GetValidationError(7);
         }
 
-        if(!utils.DataValidator(data.contact.email, 'string', 7, 254)){
+        if(!utils.DataValidator(data.contact, 'object', 2)){
             return result = GetValidationError(8);
         }
-        if(!utils.DataValidator(data.contact.telephone, 'string', 10, 12)){
+
+        if(!utils.DataValidator(data.contact.email, 'string', 7, 254)){
             return result = GetValidationError(9);
         }
-
-        if(!utils.DataValidator(data.date_of_birth, 'string', 8)){
+        if(!utils.DataValidator(data.contact.telephone, 'string', 10, 12)){
             return result = GetValidationError(10);
         }
 
+        if(!utils.DataValidator(data.date_of_birth, 'string', 10)){
+            return result = GetValidationError(11);
+        }
+
         if(!utils.DataValidator(data.city, 'string', 3, 30)){
-            return result = GetValidationError(11);;
+            return result = GetValidationError(12);;
         }
 
         if(!utils.DataValidator(data.country, 'string', 2)){
-            return result = GetValidationError(12);
-        }
-
-        if(!utils.DataValidator(data.location, 'object', 2)){
             return result = GetValidationError(13);
         }
 
-        if(!utils.DataValidator(data.location.longditude, 'number', 2, 20)){
+        if(!utils.DataValidator(data.location, 'object', 2)){
             return result = GetValidationError(14);
         }
 
-        if(!utils.DataValidator(data.location.latitude, 'number', 2, 20)){
+        if(!utils.DataValidator(data.location.longditude, 'number', 2, 20)){
             return result = GetValidationError(15);
         }
 
-        if(CheckDisplayNameForProfanity(data.display_name)){
+        if(!utils.DataValidator(data.location.latitude, 'number', 2, 20)){
             return result = GetValidationError(16);
+        }
+
+        if(profanity.isProfane(data.display_name)){
+            return result = GetValidationError(17);
+        }
+
+        if(profanity.isProfane(data.bio)){
+            return result = GetValidationError(18);
         }
 
         return result = GetValidationError(0);;
@@ -254,8 +265,9 @@ function MapUserDataFromRequest(data, new_user){
         user = {}
     }
     user.username = data.username;
-    user.display_name = data.display_name;
     user.password = data.password;
+    user.display_name = data.display_name;
+    user.bio = data.bio;
     user.name = {
         first_name : data.name.first_name,
         last_name : data.name.last_name
@@ -307,11 +319,6 @@ function SaveExistingUser(username, data){
     });
 };
 
-function CheckDisplayNameForProfanity(data){
-    // TODO: make this an actual thing, maybe also include other validation beyond profanity
-    return false;
-};
-
 function GetValidationError(id){
     let errors = [
         {
@@ -327,77 +334,87 @@ function GetValidationError(id){
         {
             error: true,
             id: 2,
-            message: "Display Name supplied is either Invalid or Missing"
-        },
-        {
-            error: true,
-            id: 3,
             message: "Password supplied is either Invalid or Missing"
         },
         {
             error: true,
+            id: 3,
+            message: "Display Name supplied is either Invalid or Missing"
+        },
+        {
+            error: true,
             id: 4,
-            message: "Names supplied is either Invalid or Missing"
+            message: "Bio supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 5,
-            message: "First Name supplied is either Invalid or Missing"
+            message: "Names supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 6,
-            message: "Last Name supplied is either Invalid or Missing"
+            message: "First Name supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 7,
-            message: "Contact supplied is either Invalid or Missing"
+            message: "Last Name supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 8,
-            message: "Email supplied is either Invalid or Missing"
+            message: "Contact supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 9,
-            message: "Telephone supplied is either Invalid or Missing"
+            message: "Email supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 10,
-            message: "Date of Birth supplied is either Invalid or Missing"
+            message: "Telephone supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 11,
-            message: "City supplied is either Invalid or Missing"
+            message: "Date of Birth supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 12,
-            message: "Country supplied is either Invalid or Missing"
+            message: "City supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 13,
-            message: "Location supplied is either Invalid or Missing"
+            message: "Country supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 14,
-            message: "Latitude supplied is either Invalid or Missing"
+            message: "Location supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 15,
-            message: "Longditude supplied is either Invalid or Missing"
+            message: "Latitude supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 16,
+            message: "Longditude supplied is either Invalid or Missing"
+        },
+        {
+            error: true,
+            id: 17,
             message: "Display Name supplied is inappropriate"
+        },
+        {
+            error: true,
+            id: 18,
+            message: "Display Name contains words or phrases that are inappropriate"
         }
     ]
     if(id == 0){

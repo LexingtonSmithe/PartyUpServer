@@ -16,8 +16,7 @@ const Error = utils.Error;
 module.exports = {
 
     OpenAuthenticationMiddleware : async function(req, res, next){
-        console.log(req);
-        Log('INFO', "Authenticaticating");
+        Log('INFO', "Authenticaticating User for Public Info");
         let username = req.headers.username;
         let access_token = req.headers.access_token;
         if(!access_token){
@@ -68,7 +67,7 @@ module.exports = {
     },
 
     ClosedAuthenticationMiddleware : async function(req, res, next){
-        Log('INFO', "Authenticaticating");
+        Log('INFO', "Authenticaticating User For Private Info");
         let header_username = req.headers.username;
         let body_username = req.body.username;
         let access_token = req.headers.access_token;
