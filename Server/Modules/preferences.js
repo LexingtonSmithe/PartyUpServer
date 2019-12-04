@@ -196,6 +196,60 @@ module.exports = {
                 })
             }
         }
+    },
+
+    ValidatePreferences : function(data){
+        let result = {};
+
+        if(!utils.DataValidator(data.systems, 'string', 2, 6)) {
+            return result = GetValidationError(1);
+        }
+
+        if(!utils.DataValidator(data.device, 'string', 2, 6)) {
+            return result = GetValidationError(2);
+        }
+
+        if(!utils.DataValidator(data.role, 'string', 2, 6)) {
+            return result = GetValidationError(3);
+        }
+
+        if(!utils.DataValidator(data.party_size, 'number', 1)) {
+            return result = GetValidationError(4);
+        }
+
+        if(!utils.DataValidator(data.age, 'object', 2)) {
+            return result = GetValidationError(5);
+        }
+
+        if(!utils.DataValidator(data.age.min_age, 'number', 1, 2)) {
+            return result = GetValidationError(6);
+        }
+
+        if(!utils.DataValidator(data.age.max_age, 'number', 1, 2)) {
+            return result = GetValidationError(7);
+        }
+
+        if(!utils.DataValidator(data.days_available, 'array', 1, 7)) {
+            return result = GetValidationError(8);
+        }
+
+        if(!utils.ArrayValidator(data.days_available, 'string')){
+            return result = GetValidationError(9);
+        }
+
+        if(!utils.DataValidator(data.time_available, 'object', 2)){
+            return result = GetValidationError(10);
+        }
+
+        if(!utils.DataValidator(data.time_available.start, 'string', 5)){
+            return result = GetValidationError(11);
+        }
+
+        if(!utils.DataValidator(data.time_available.end, 'string', 5)){
+            return result = GetValidationError(12);
+        }
+
+        return result = GetValidationError(0);
     }
 
 };
@@ -229,60 +283,6 @@ function UpdatePreferences(data) {
             }
         })
     })
-};
-
-function ValidatePreferences(data){
-    let result = {};
-
-    if(!utils.DataValidator(data.systems, 'string', 2, 6)) {
-        return result = GetValidationError(1);
-    }
-
-    if(!utils.DataValidator(data.device, 'string', 2, 6)) {
-        return result = GetValidationError(2);
-    }
-
-    if(!utils.DataValidator(data.role, 'string', 2, 6)) {
-        return result = GetValidationError(3);
-    }
-
-    if(!utils.DataValidator(data.party_size, 'number', 1)) {
-        return result = GetValidationError(4);
-    }
-
-    if(!utils.DataValidator(data.age, 'object', 2)) {
-        return result = GetValidationError(5);
-    }
-
-    if(!utils.DataValidator(data.age.min_age, 'number', 1, 2)) {
-        return result = GetValidationError(6);
-    }
-
-    if(!utils.DataValidator(data.age.max_age, 'number', 1, 2)) {
-        return result = GetValidationError(7);
-    }
-
-    if(!utils.DataValidator(data.days_available, 'array', 1, 7)) {
-        return result = GetValidationError(8);
-    }
-
-    if(!utils.ArrayValidator(data.days_available, 'string')){
-        return result = GetValidationError(9);
-    }
-
-    if(!utils.DataValidator(data.time_available, 'object', 2)){
-        return result = GetValidationError(10);
-    }
-
-    if(!utils.DataValidator(data.time_available.start, 'string', 5)){
-        return result = GetValidationError(11);
-    }
-
-    if(!utils.DataValidator(data.time_available.end, 'string', 5)){
-        return result = GetValidationError(12);
-    }
-
-    return result = GetValidationError(0);
 };
 
 function GetValidationError(id){
@@ -325,7 +325,7 @@ function GetValidationError(id){
         {
             error: true,
             id: 7,
-            message: "Maximum age supplied is either Invalid or Missing"
+            message: "Maximum Age supplied is either Invalid or Missing"
         },
         {
             error: true,

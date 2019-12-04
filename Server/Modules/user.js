@@ -39,7 +39,7 @@ module.exports = {
 
     CreateUser : async function(req, res){
         Log('INFO', "Validating Supplied User Data");
-        let validated_user = this.ValidateUserData(req.body);
+        let validated_user = this.ValidateUser(req.body);
         if(validated_user.error){
             return res.status(400).json({
                 "status": "Error",
@@ -75,7 +75,7 @@ module.exports = {
     },
 
     UpdateUser : async function(req, res){
-        let validated_user = this.ValidateUserData(req.body);
+        let validated_user = this.ValidateUser(req.body);
         if(validated_user.error){
             return res.status(400).json({
                 "status": "Error",
@@ -191,7 +191,7 @@ module.exports = {
         })
     },
 
-    ValidateUserData : function(data) {
+    ValidateUser : function(data) {
         let result = {}
 
         if(!utils.DataValidator(data.username, 'string', 3, 12)){
@@ -424,12 +424,12 @@ function GetValidationError(id){
         {
             error: true,
             id: 15,
-            message: "Latitude supplied is either Invalid or Missing"
+            message: "Longditude supplied is either Invalid or Missing"
         },
         {
             error: true,
             id: 16,
-            message: "Longditude supplied is either Invalid or Missing"
+            message: "Latitude supplied is either Invalid or Missing"
         },
         {
             error: true,
@@ -439,7 +439,7 @@ function GetValidationError(id){
         {
             error: true,
             id: 18,
-            message: "Display Name contains words or phrases that are inappropriate"
+            message: "Bio contains words or phrases that are inappropriate"
         }
     ]
     if(id == 0){
