@@ -106,5 +106,12 @@ exports = module.exports = {
         return array.every( function(value) {
             return typeof value == of_what
         })
+    },
+
+    CalculateAge : function(date_of_birth){
+        // TODO - Actually do a thing that brings back an age instead of the Date of Birth
+        let age = 35;
+
+        return age;
     }
 }

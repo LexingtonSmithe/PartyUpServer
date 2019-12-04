@@ -38,26 +38,37 @@ router.post('/auth/login', function(req, res){
 
 // -------------------------- USER
 //CREATE
+
 router.post('/user', function(req, res){
   Log('INFO', 'Adding User: ' + req.body.username);
   user.CreateUser(req, res);
 });
+
 //READ
+
 router.get('/user/profile', OpenAuth, function(req, res){
   Log('INFO', 'Getting User Data: ' + req.headers.username);
   user.GetUser(req, res);
 });
+
+router.get('/user/profile/:username', OpenAuth, function(req, res){
+  Log('INFO', 'Getting User Data: ' + req.headers.username);
+  user.GetUserProfile(req, res);
+});
+
 //UPDATE
+
 router.post('/user/update', ClosedAuth, function(req, res){
   Log('INFO', 'Updating User: ' + req.headers.username);
   user.UpdateUser(req, res);
 });
+
 //DELETE
+
 router.delete('/user/delete', OpenAuth, function(req, res){
   Log('INFO', 'Updating User: ' + req.headers.username);
   user.DeleteUser(req, res);
 });
-
 
 // ------------------------- PREFERENCES
 router.get('/preferences/list/', OpenAuth, function(req, res){

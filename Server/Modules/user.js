@@ -115,7 +115,32 @@ module.exports = {
                 Log('INFO', "User data found: " + req.headers.username)
                 return res.json({
                     "status": "Success",
-                    "data": CleanUserData(user)
+                    "data": PrivatelyDisplayedUserData(user)
+                });
+            } else {
+                Log('INFO', "User data not found");
+                return res.status(400).json({
+                    "status": "Error",
+                    "message": Error(2)
+                });
+            }
+            if(err){
+                return res.status(400).json({
+                    "status": "Success",
+                    "message": Error(8)
+                });
+            }
+        })
+    },
+
+    GetUserProfile : async function(req, res){
+        Log('INFO', "Retrieving Supplied Users Data");
+        User.findOne({username: req.params.username}, function(err, user){
+            if(user) {
+                Log('INFO', "User data found: " + req.params.username)
+                return res.json({
+                    "status": "Success",
+                    "data": PubliclyDisplayedUserData(user)
                 });
             } else {
                 Log('INFO', "User data not found");
@@ -426,7 +451,7 @@ function GetValidationError(id){
     return errors[id];
 }
 
-function CleanUserData(data){
+function PrivatelyDisplayedUserData(data){
     let response = {
         "username" : data.username,
         "display_name" : data.display_name,
@@ -445,6 +470,16 @@ function CleanUserData(data){
             "latitude" : data.location.latitude,
             "longditude" : data.location.longditude
         }
+      }
+    return response;
+}
+
+function PubliclyDisplayedUserData(data){
+    let response = {
+        "display_name" : data.display_name,
+        "bio": data.bio,
+        "age": utils.CalculateAge(data.date_of_birth),
+        "city" : data.city
       }
     return response;
 }
