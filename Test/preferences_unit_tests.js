@@ -132,7 +132,7 @@ describe('Preferences Validation Tests', function() {
         let preference_data = makeTestPreferences();
         preference_data.party_size = [1, 69];
         let result = preferences.ValidatePreferences(preference_data);
-        expect(result.message).to.equal("Party Size data supplied is Invalid");
+        expect(result.message).to.equal("Party Size supplied is either Invalid or Missing");
         done();
     })
 
@@ -140,7 +140,7 @@ describe('Preferences Validation Tests', function() {
         let preference_data = makeTestPreferences();
         preference_data.days_available = ["Blurgsday", "Monday"];
         let result = preferences.ValidatePreferences(preference_data);
-        expect(result.message).to.equal("Days Available data supplied is Invalid");
+        expect(result.message).to.equal("Days Available supplied is either Invalid or Missing");
         done();
     })
 

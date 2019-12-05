@@ -38,14 +38,11 @@ router.post('/auth/login', function(req, res){
 });
 
 // ----------------------------------------------------------------------- USER
-//CREATE
 
 router.post('/user', function(req, res){
   Log('INFO', 'Adding User: ' + req.body.username);
   user.CreateUser(req, res);
 });
-
-//READ
 
 router.get('/user/profile', OpenAuth, function(req, res){
   Log('INFO', 'Getting User Data: ' + req.headers.username);
@@ -57,14 +54,10 @@ router.get('/user/profile/:username', OpenAuth, function(req, res){
   user.GetUserProfile(req, res);
 });
 
-//UPDATE
-
 router.post('/user/update', ClosedAuth, function(req, res){
   Log('INFO', 'Updating User: ' + req.headers.username);
   user.UpdateUser(req, res);
 });
-
-//DELETE
 
 router.delete('/user/delete', OpenAuth, function(req, res){
   Log('INFO', 'Updating User: ' + req.headers.username);
@@ -72,8 +65,8 @@ router.delete('/user/delete', OpenAuth, function(req, res){
 });
 
 // ----------------------------------------------------------------------- PREFERENCES
-router.get('/preferences/list/', OpenAuth, function(req, res){
-    Log('INFO', 'Requesting Preferences');
+router.get('/preferences/list', OpenAuth, function(req, res){
+    Log('INFO', 'Requesting Preferences List');
     preferences.GetPreferencesList(req, res);
 });
 
@@ -82,7 +75,7 @@ router.get('/preferences', OpenAuth, function(req, res){
     preferences.GetUserPreferences(req, res);
 });
 
-router.post('/preferences/', ClosedAuth, function(req, res){
+router.post('/preferences', ClosedAuth, function(req, res){
     Log('INFO', 'Submitting Preferences');
     preferences.SubmitPreferences(req, res);
 });

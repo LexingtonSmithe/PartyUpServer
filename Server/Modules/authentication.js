@@ -116,7 +116,6 @@ module.exports = {
             next();
         }
         catch(error){
-            console.log(error);
             return res.status(500).json({
                 "status": "Error",
                 "error": Error(11)
@@ -128,8 +127,9 @@ module.exports = {
 
         let user_data = await user.UserExists(req.body.username);
         if(user_data){
+            Log('INFO', "Checking if password valid");
             if(req.body.password == user_data.password){
-                Log('INFO', "Password valid creating access token");
+                Log('INFO', "Password valid");
                 let access_token = await this.CreateAccessToken(req.body.username);
                 return res.json({
                     "status": "Success",
@@ -220,23 +220,23 @@ async function ValidateAccessToken(username, access_token){
         */
         if(username != used_username) {
             Log('INFO', "Access token supplied is not for user supplied: " + username);
-            return reject(false);
+            resolve(false);
         }
 
         if(used_secret != config.secret){
             Log('INFO', "Used secret was incorrect: " + used_secret);
-            return reject(false);
+            resolve(false);
         }
 
         let lastLoginDate = await datetime.GetLastLoginDate(used_username);
         if(used_date != lastLoginDate){
             Log('INFO', "Used date(" + used_date + ") did not match last login date: " + lastLoginDate);
-            return reject(false);
+            resolve(false);
         }
 
         if(datetime.CheckTokenDateTimeout(used_date)){
-            return reject(false)
             Log('INFO', "Users access token has timed out: " + used_date);
+            resolve(false)
         }
         Log('INFO', "Successfully validated access token");
         resolve(true);

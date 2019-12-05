@@ -61,7 +61,7 @@ exports = module.exports = {
                 "error_code": error_code,
                 "message": errors[error_code].Message
             }
-            exports.Log(errors[error_code].Level, errors[error_code].Code + "\n"+ errors[error_code].Log, parsedData);
+            exports.Log(errors[error_code].Level, errors[error_code].Code + " - " + errors[error_code].Log, parsedData);
         } else {
             var response = exports.Error(0);
         }
@@ -125,4 +125,5 @@ exports = module.exports = {
 
         return age;
     }
+
 }

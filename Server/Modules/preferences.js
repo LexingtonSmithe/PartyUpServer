@@ -22,7 +22,7 @@ module.exports = {
                     resolve(response)
                 } else {
                     Log('INFO', "No Preferences Found");
-                    reject(false);
+                    resolve(false);
                 }
                 if (err) {
                     reject(Error(8, err));
@@ -48,12 +48,11 @@ module.exports = {
     },
 
     GetPreferencesList: async function(req, res) {
-        let username = req.headers.username;
-        await this.GetUserPreferences(username)
-            .then((response) => {
-                let message = "";
+        await this.GetUserPreferences(req.headers.username)
+            .then((preferences) => {
+                let message = "Users default preferences not found";
                 let preferencesList = defaultPreferencesList;
-                if (response != null) {
+                if (preferences != null && preferences != false) {
                     preferencesList.systems.default = response.systems;
                     preferencesList.device.default = response.device;
                     preferencesList.role.default = response.role;
@@ -64,10 +63,7 @@ module.exports = {
                     preferencesList.time_available_start.default = response.time_available.start;
                     preferencesList.time_available_end.default = response.time_available.end;
                     preferencesList.distance.default = response.distance;
-                    Log('INFO', "Preferences Found: Adding Preset Values");
-                    message = "User preferences not found";
-                } else {
-                    Log('INFO', "No Preferences Found");
+                    Log('INFO', "Adding Preset Preference Values");
                     message = "Users preferences added to default values"
                 }
                 res.json({
