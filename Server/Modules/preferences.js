@@ -31,27 +31,6 @@ module.exports = {
         })
     },
 
-    CheckForUserPreferences: function(username) {
-        Log('INFO', "Checking for preferences for user: " + username);
-        return new Promise((resolve, reject) => {
-            let query = Preferences.where({
-                username: username
-            })
-            query.findOne(function(err, response) {
-                if(response != null) {
-                    Log('INFO', "Preferences Found");
-                    resolve(true);
-                } else {
-                    Log('INFO', "No Preferences Found");
-                    resolve(false);
-                }
-                if(err) {
-                    reject(Error(8, err));
-                }
-            })
-        })
-    },
-
     DeleteUserPreferences: function(username) {
         Log('INFO', "Deleting for preferences for user: " + username);
         Preferences.findOneAndDelete({username: username},function(err, response) {
@@ -66,39 +45,6 @@ module.exports = {
                 return Error(8, err);
             }
         })
-    },
-
-    GetPreferences: async function(req, res) {
-        let username = req.headers.username;
-        await this.GetUserPreferences(username)
-            .then((response) => {
-                let message = "";
-                let preferencesList = {};
-                if (response != null) {
-                    preferencesList.systems = response.systems;
-                    preferencesList.role = response.role;
-                    preferencesList.days_free = response.days_free;
-                    preferencesList.times_free = response.times_free_start;
-                    preferencesList.times_free = response.times_free_end;
-                    preferencesList.party_size = response.party_size;
-                    preferencesList.age = response.age;
-                    preferencesList.distance = response.distance;
-                    message = "Preferences Found";
-                } else {
-                    message = "User preferences not found"
-                }
-                res.json({
-                    "status": "Success",
-                    "message": message,
-                    "data": preferencesList
-                })
-            })
-            .catch((err) => {
-                res.status(500).json({
-                    "status": "Error",
-                    "error": Error(9)
-                })
-            });
     },
 
     GetPreferencesList: async function(req, res) {
@@ -116,7 +62,7 @@ module.exports = {
                     preferencesList.max_age.default = response.age.max_age;
                     preferencesList.days_free.default = response.days_free;
                     preferencesList.time_available_start.default = response.time_available.start;
-                    preferencesList.time_available_end.default = response.time_available.start;
+                    preferencesList.time_available_end.default = response.time_available.end;
                     preferencesList.distance.default = response.distance;
                     Log('INFO', "Preferences Found: Adding Preset Values");
                     message = "User preferences not found";
@@ -154,7 +100,7 @@ module.exports = {
 
         var preferences_exist = false
         try {
-            preferences_exist = await this.CheckForUserPreferences(req.headers.username);
+            preferences_exist = await this.GetUserPreferences(req.headers.username);
         }
         catch(error){
             return res.status(500).json({
@@ -245,18 +191,23 @@ module.exports = {
         if(!utils.DataValidator(data.time_available.end, 'string', 5, 5) || !defaultPreferencesList.time_available_end.options.includes(data.time_available.end)){
             return result = GetValidationError(11);
         }
+        // only contains values that are in the range of possible options
+        if(!utils.ArrayValidator(data.systems, 'string', defaultPreferencesList.systems.options)){
+            return result = GetValidationError(1);
+        }
 
         if(!utils.ArrayValidator(data.device, 'string', defaultPreferencesList.device.options)){
-            return result = GetValidationError(12);
+            return result = GetValidationError(2);
         }
 
         if(!utils.ArrayValidator(data.party_size, 'number', defaultPreferencesList.party_size.options)){
-            return result = GetValidationError(13);
+            return result = GetValidationError(4);
         }
 
         if(!utils.ArrayValidator(data.days_available, 'string', defaultPreferencesList.days_available.options)){
-            return result = GetValidationError(14);
+            return result = GetValidationError(8);
         }
+
 
         return result = GetValidationError(0);
     }
@@ -355,23 +306,7 @@ function GetValidationError(id){
             error: true,
             id: 11,
             message: "End Time supplied is either Invalid or Missing"
-        },
-        {
-            error: true,
-            id: 12,
-            message: "Device data supplied is Invalid"
-        },
-        {
-            error: true,
-            id: 13,
-            message: "Party Size data supplied is Invalid"
-        },
-        {
-            error: true,
-            id: 14,
-            message: "Days Available data supplied is Invalid"
-        },
-
+        }
     ]
     if(id == 0){
         Log('INFO', "Valid Preferences Data: " + errors[id].message);

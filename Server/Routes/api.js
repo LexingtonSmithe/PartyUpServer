@@ -79,7 +79,7 @@ router.get('/preferences/list/', OpenAuth, function(req, res){
 
 router.get('/preferences', OpenAuth, function(req, res){
     Log('INFO', 'Requesting Preferences');
-    preferences.GetPreferences(req, res);
+    preferences.GetUserPreferences(req, res);
 });
 
 router.post('/preferences/', ClosedAuth, function(req, res){

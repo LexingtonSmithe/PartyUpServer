@@ -36,7 +36,7 @@ module.exports = {
             })
         })
     },
-
+    // not secure
     CreateUser : async function(req, res){
         Log('INFO', "Validating Supplied User Data");
         let validated_user = this.ValidateUser(req.body);
@@ -73,7 +73,7 @@ module.exports = {
             "message": "Created User"
         });
     },
-
+    // secure
     UpdateUser : async function(req, res){
         let validated_user = this.ValidateUser(req.body);
         if(validated_user.error){
@@ -107,7 +107,7 @@ module.exports = {
             });
         }
     },
-
+    // for the users eyes only
     GetUser : async function(req, res){
         Log('INFO', "Retrieving Supplied Users Data");
         User.findOne({username: req.headers.username}, function(err, user){
@@ -132,7 +132,7 @@ module.exports = {
             }
         })
     },
-
+    // for anyone
     GetUserProfile : async function(req, res){
         Log('INFO', "Retrieving Supplied Users Data");
         User.findOne({username: req.params.username}, function(err, user){
