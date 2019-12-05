@@ -19,7 +19,7 @@ const Error = utils.Error;
 mongoose.Promise = global.Promise;
 module.exports = router;
 
-mongoose.connect(config.mongoURL, {useNewUrlParser: true}, function(err){
+mongoose.connect(config.mongoURL, {useNewUrlParser: true, useUnifiedTopology: true }, function(err){
   if(err){
     Error(7, err);
   } else {
