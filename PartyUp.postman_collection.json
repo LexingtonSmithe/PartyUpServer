@@ -36,7 +36,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n  \"username\" : \"{{username}}\",\n  \"display_name\" : \"Lexington Smithe\",\n  \"password\" : \"{{password}}\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Lowndes\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"0161123456789\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
+					"raw": "{\n  \"username\" : \"{{username}}\",\n  \"password\" : \"{{password}}\",\n  \"display_name\" : \"Lexington\",\n  \"bio\": \"Hi, my name is Bob and I would like to play Cleric. I've never played DnD before, but I've watched every episode of Critical Role\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Smith\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"01611234567\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -85,6 +85,42 @@
 					"path": [
 						"user",
 						"profile"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Users Profile",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "username",
+						"value": "{{username}}",
+						"type": "text"
+					},
+					{
+						"key": "access_token",
+						"value": "{{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/user/profile/Lex",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"user",
+						"profile",
+						"Lex"
 					]
 				}
 			},
@@ -236,7 +272,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n\t\"systems\": \"DnD 5e\",\n\t\"device\": \"IRL\",\n\t\"role\": \"Player\",\n\t\"party_size\": \"5\",\n\t\"age\": \"25-29\",\n\t\"days_free\": \"Sunday\",\n\t\"times_free_start\": \"16:00\",\n\t\"times_free_end\": \"20:00\",\n\t\"distance\": 5\n}",
+					"raw": "{\t\r\n\t\"username\": \"{{username}}\",\r\n\t\"systems\": [\r\n        \"DnD 5e\"\r\n    ],\r\n\t\"device\": [\r\n        \"IRL\"\r\n    ],\r\n\t\"role\": \"Player\",\r\n\t\"party_size\": [\r\n        5\r\n    ],\r\n\t\"age\": {\r\n        \"min_age\" : 25,\r\n        \"max_age\" : 45\r\n    },\r\n\t\"days_available\": [\r\n        \"Sunday\"\r\n    ],\r\n\t\"time_available\":{\r\n        \"start\" : \"16:00\",\r\n        \"end\" : \"20:00\"\r\n    },\r\n\t\"distance\": 5\r\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -259,15 +295,25 @@
 			"name": "Preferences",
 			"request": {
 				"method": "GET",
-				"header": [],
+				"header": [
+					{
+						"key": "username",
+						"value": "{{username}}",
+						"type": "text"
+					},
+					{
+						"key": "access_token",
+						"value": "{{access_token}}",
+						"type": "text"
+					}
+				],
 				"url": {
-					"raw": "{{url}}/preferences/Lex",
+					"raw": "{{url}}/preferences",
 					"host": [
 						"{{url}}"
 					],
 					"path": [
-						"preferences",
-						"Lex"
+						"preferences"
 					]
 				}
 			},
@@ -287,6 +333,75 @@
 						"preferences",
 						"list",
 						"Lex"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search - Get Active TEMP",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "username",
+						"value": "{{username}}",
+						"type": "text"
+					},
+					{
+						"key": "access_token",
+						"value": "{{access_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/matches",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"matches"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search - Set Active",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"name": "Content-Type",
+						"type": "text",
+						"value": "application/json"
+					},
+					{
+						"key": "username",
+						"type": "text",
+						"value": "{{username}}"
+					},
+					{
+						"key": "access_token",
+						"type": "text",
+						"value": "{{access_token}}"
+					}
+				],
+				"url": {
+					"raw": "{{url}}/matches/search",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"matches",
+						"search"
 					]
 				}
 			},
