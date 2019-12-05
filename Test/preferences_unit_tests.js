@@ -8,10 +8,16 @@ config.logLevel = "ERROR";
 describe('Preferences Validation Tests', function() {
     function makeTestPreferences(){
         return  {
-        	"systems": "DnD 5e",
-        	"device": "IRL",
+        	"systems": [
+                "DnD 5e"
+            ],
+        	"device": [
+                "IRL"
+            ],
         	"role": "Player",
-        	"party_size": 5,
+        	"party_size": [
+                5
+            ],
         	"age": {
                 "min_age" : 25,
                 "max_age" : 45
@@ -119,6 +125,22 @@ describe('Preferences Validation Tests', function() {
         preference_data.time_available.end = undefined;
         let result = preferences.ValidatePreferences(preference_data);
         expect(result.message).to.equal("End Time supplied is either Invalid or Missing");
+        done();
+    })
+
+    it('Should check against preset values for party_size preferences creation', function (done){
+        let preference_data = makeTestPreferences();
+        preference_data.party_size = [1, 69];
+        let result = preferences.ValidatePreferences(preference_data);
+        expect(result.message).to.equal("Party Size data supplied is Invalid");
+        done();
+    })
+
+    it('Should check against preset values for days_available preferences creation', function (done){
+        let preference_data = makeTestPreferences();
+        preference_data.days_available = ["Blurgsday", "Monday"];
+        let result = preferences.ValidatePreferences(preference_data);
+        expect(result.message).to.equal("Days Available data supplied is Invalid");
         done();
     })
 

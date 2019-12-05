@@ -102,10 +102,21 @@ exports = module.exports = {
         return true;
     },
 
-    ArrayValidator : function(array, of_what){
-        return array.every( function(value) {
+    ArrayValidator : function(array, of_what, array_to_compare){
+        let correct_types = array.every( function(value) {
             return typeof value == of_what
         })
+        if(!correct_types){
+            return false
+        }
+        // comparing the 2 arrays and ensuring that all of the items from the first array are present in the second array of available options
+        for(let i = 0; i < array.length; i++){
+            if(!array_to_compare.includes(array[i])){
+                return false;
+                break;
+            }
+        }
+        return true;
     },
 
     CalculateAge : function(date_of_birth){

@@ -105,26 +105,28 @@ module.exports = {
         let username = req.headers.username;
         await this.GetUserPreferences(username)
             .then((response) => {
-                let message = "Preferences Found";
+                let message = "";
                 let preferencesList = defaultPreferencesList;
                 if (response != null) {
                     preferencesList.systems.default = response.systems;
                     preferencesList.device.default = response.device;
                     preferencesList.role.default = response.role;
-                    preferencesList.days_free.default = response.days_free;
-                    preferencesList.times_free.default_start_time = response.times_free_start;
-                    preferencesList.times_free.default_end_time = response.times_free_end;
                     preferencesList.party_size.default = response.party_size;
-                    preferencesList.age.default = response.age;
+                    preferencesList.min_age.default = response.age.min_age;
+                    preferencesList.max_age.default = response.age.max_age;
+                    preferencesList.days_free.default = response.days_free;
+                    preferencesList.time_available_start.default = response.time_available.start;
+                    preferencesList.time_available_end.default = response.time_available.start;
                     preferencesList.distance.default = response.distance;
                     Log('INFO', "Preferences Found: Adding Preset Values");
+                    message = "User preferences not found";
                 } else {
                     Log('INFO', "No Preferences Found");
-                    message = "User preferences not found"
+                    message = "Users preferences added to default values"
                 }
                 res.json({
                     "status": "Success",
-                    "message": "Users default preferences added to list",
+                    "message": message,
                     "data": preferencesList
                 })
             })
@@ -139,7 +141,7 @@ module.exports = {
     SubmitPreferences: async function(req, res){
 
         Log('INFO', "Validating Supplied Preferences Data");
-        let validated_preferences = ValidatePreferences(req.body);
+        let validated_preferences = this.ValidatePreferences(req.body);
         if(validated_preferences.error){
             return res.status(400).json({
                 "status": "Error",
@@ -181,7 +183,6 @@ module.exports = {
         } else {
             try {
                 let saved_preferences = await SavePreferences(req.headers.username, req.body);
-                Log('INFO', saved_preferences);
                 if(saved_preferences){
                     res.json({
                         "status": "Success",
@@ -201,52 +202,60 @@ module.exports = {
     ValidatePreferences : function(data){
         let result = {};
 
-        if(!utils.DataValidator(data.systems, 'string', 2, 6)) {
+        if(!utils.DataValidator(data.systems, 'array', 1)){
             return result = GetValidationError(1);
         }
 
-        if(!utils.DataValidator(data.device, 'string', 2, 6)) {
+        if(!utils.DataValidator(data.device, 'array', 1)){
             return result = GetValidationError(2);
         }
 
-        if(!utils.DataValidator(data.role, 'string', 2, 6)) {
+        if(!utils.DataValidator(data.role, 'string', 2, 6) || !defaultPreferencesList.role.options.includes(data.role)){
             return result = GetValidationError(3);
         }
 
-        if(!utils.DataValidator(data.party_size, 'number', 1)) {
+        if(!utils.DataValidator(data.party_size, 'array')){
             return result = GetValidationError(4);
         }
 
-        if(!utils.DataValidator(data.age, 'object', 2)) {
+        if(!utils.DataValidator(data.age, 'object', 2, 2)) {
             return result = GetValidationError(5);
         }
 
-        if(!utils.DataValidator(data.age.min_age, 'number', 1, 2)) {
+        if(!utils.DataValidator(data.age.min_age, 'number', 1, 2) || !defaultPreferencesList.min_age.options.includes(data.age.min_age)) {
             return result = GetValidationError(6);
         }
 
-        if(!utils.DataValidator(data.age.max_age, 'number', 1, 2)) {
+        if(!utils.DataValidator(data.age.max_age, 'number', 1, 2) || !defaultPreferencesList.max_age.options.includes(data.age.min_age)) {
             return result = GetValidationError(7);
         }
 
-        if(!utils.DataValidator(data.days_available, 'array', 1, 7)) {
+        if(!utils.DataValidator(data.days_available, 'array', 1)){
             return result = GetValidationError(8);
         }
 
-        if(!utils.ArrayValidator(data.days_available, 'string')){
+        if(!utils.DataValidator(data.time_available, 'object', 2, 2)){
             return result = GetValidationError(9);
         }
 
-        if(!utils.DataValidator(data.time_available, 'object', 2)){
+        if(!utils.DataValidator(data.time_available.start, 'string', 5, 5) || !defaultPreferencesList.time_available_start.options.includes(data.time_available.start)){
             return result = GetValidationError(10);
         }
 
-        if(!utils.DataValidator(data.time_available.start, 'string', 5)){
+        if(!utils.DataValidator(data.time_available.end, 'string', 5, 5) || !defaultPreferencesList.time_available_end.options.includes(data.time_available.end)){
             return result = GetValidationError(11);
         }
 
-        if(!utils.DataValidator(data.time_available.end, 'string', 5)){
+        if(!utils.ArrayValidator(data.device, 'string', defaultPreferencesList.device.options)){
             return result = GetValidationError(12);
+        }
+
+        if(!utils.ArrayValidator(data.party_size, 'number', defaultPreferencesList.party_size.options)){
+            return result = GetValidationError(13);
+        }
+
+        if(!utils.ArrayValidator(data.days_available, 'string', defaultPreferencesList.days_available.options)){
+            return result = GetValidationError(14);
         }
 
         return result = GetValidationError(0);
@@ -335,28 +344,39 @@ function GetValidationError(id){
         {
             error: true,
             id: 9,
-            message: "Days Available data supplied is Invalid"
-        },
-        {
-            error: true,
-            id: 10,
             message: "Times Available supplied is either Invalid or Missing"
         },
         {
             error: true,
-            id: 11,
+            id: 10,
             message: "Start Time supplied is either Invalid or Missing"
         },
         {
             error: true,
-            id: 12,
+            id: 11,
             message: "End Time supplied is either Invalid or Missing"
-        }
+        },
+        {
+            error: true,
+            id: 12,
+            message: "Device data supplied is Invalid"
+        },
+        {
+            error: true,
+            id: 13,
+            message: "Party Size data supplied is Invalid"
+        },
+        {
+            error: true,
+            id: 14,
+            message: "Days Available data supplied is Invalid"
+        },
+
     ]
     if(id == 0){
-        Log('INFO', "Valid Preferences Data: " + errors[id].message + " - " + id);
+        Log('INFO', "Valid Preferences Data: " + errors[id].message);
     } else {
-        Log('INFO', "Invalid Preferences Data: " + errors[id].message + " - " + id);
+        Log('INFO', "Invalid Preferences Data: " + id + " - " + errors[id].message);
     }
 
     return errors[id];

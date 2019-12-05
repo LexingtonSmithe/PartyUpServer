@@ -5,10 +5,11 @@ const mongoose = require('mongoose');
 const config = require('../../config.json');
 
 // internal
-const preferences = require('../Modules/preferences');
-const user = require('../Modules/user');
-const utils = require('../Modules/utils');
 const auth = require('../Modules/authentication');
+const user = require('../Modules/user');
+const preferences = require('../Modules/preferences');
+const matchmaking = require('../Modules/matchmaking');
+const utils = require('../Modules/utils');
 const ClosedAuth = auth.ClosedAuthenticationMiddleware;
 const OpenAuth = auth.OpenAuthenticationMiddleware;
 const Log = utils.Log;
@@ -30,13 +31,13 @@ mongoose.set('useFindAndModify', false);
 //----testing----
 
 
-// -------------------------- AUTH
+// ----------------------------------------------------------------------- AUTH
 router.post('/auth/login', function(req, res){
   Log('INFO', 'Logging In: ' + req.body.username);
   auth.UserLogin(req, res);
 });
 
-// -------------------------- USER
+// ----------------------------------------------------------------------- USER
 //CREATE
 
 router.post('/user', function(req, res){
@@ -70,13 +71,13 @@ router.delete('/user/delete', OpenAuth, function(req, res){
   user.DeleteUser(req, res);
 });
 
-// ------------------------- PREFERENCES
+// ----------------------------------------------------------------------- PREFERENCES
 router.get('/preferences/list/', OpenAuth, function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferencesList(req, res);
 });
 
-router.get('/preferences/', ClosedAuth, function(req, res){
+router.get('/preferences', OpenAuth, function(req, res){
     Log('INFO', 'Requesting Preferences');
     preferences.GetPreferences(req, res);
 });
@@ -86,7 +87,18 @@ router.post('/preferences/', ClosedAuth, function(req, res){
     preferences.SubmitPreferences(req, res);
 });
 
-// ------------------------- OTHER
+// ----------------------------------------------------------------------- Matchmaking
+router.get('/matches', function(req, res){
+  Log('INFO', 'Getting Active Players');
+  matchmaking.GetMatches(req, res);
+});
+
+router.put('/matches/search', function(req, res){
+  Log('INFO', 'Initiating Matchmaking: ' + req.headers.username);
+  matchmaking.SearchForMatches(req, res);
+});
+
+// ----------------------------------------------------------------------- OTHER
 router.get('/health', async function(req, res){
     Log('INFO', "Health Checked");
     if(mongoose.connection.readyState == 1){

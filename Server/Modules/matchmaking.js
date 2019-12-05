@@ -2,18 +2,130 @@
 const mongoose = require('mongoose');
 // internal
 const Group = require('../Models/group');
-const Preferences = require('../Models/preferences');
 const User = require('../Models/user');
+const Preferences = require('../Models/preferences');
+const user = require('../Modules/user');
+const preferences = require('../Modules/preferences');
 const utils = require('../Modules/utils');
 const Log = utils.Log;
 const Error = utils.Error;
 
 // local
 module.exports = {
-    something : function(){
+    GetMatches : async function(req, res){
+        try {
+            let list_of_players = await GetActivePlayers();
+            if(list_of_players){
+                return res.json({
+                    "status": "Success",
+                    "message": list_of_players.length
+                });
+            } else {
+                return res.json({
+                    "status": "Success",
+                    "message": "No Active Users Found"
+                });
+            }
+        }
+        catch(error){
+            return res.status(500).json({
+                "status": "Error",
+                "message": "Some bullshit: " + error
+            });
+        }
 
+
+    },
+
+    SearchForMatches : async function(req, res){
+        Log('INFO', "Searching For Groups: " + req.headers.username);
+        let active_player = false;
+
+        try{
+            active_player = await SetActivePlayer(req.headers.username);
+        }
+        catch(error){
+            return res.status(500).json({
+                "status": "Error",
+                "message": "Some bullshit: " + error
+            });
+        }
+
+        if(active_player){
+            return res.json({
+                "status": "Success",
+                "message": "Player Set To Active"
+            });
+        } else {
+            return res.status(404).json({
+                "status": "Error",
+                "message": "User Not Found"
+            });
+        }
+        /*
+            Begin search
+        */
+
+    },
+
+    SetInactiveSearchForPlayersWithExpiredSearch : async function(){
+        let list_of_players = await GetActivePlayers();
+        // TODO
     }
 };
+
+
+
+function GetActivePlayers(){
+    return new Promise((resolve, reject) => {
+        User.find({active_search: true}, function(err, users){
+            if(users) {
+                Log('INFO', "Found Active Users: " + users.length);
+                return resolve(users);
+            } else {
+                Log('INFO', "User does not exist");
+                return resolve(false);
+            }
+            if(err){
+                return reject(Error(8, err));
+            }
+        })
+    })
+}
+
+function SetActivePlayer(username){
+    Log('INFO', "Setting Player Search To Active: " + username);
+    return new Promise((resolve, reject) => {
+        User.findOneAndUpdate({username: username}, {active_search: true}, function(err, user){
+            if(user){
+                Log('INFO', "Set Users Search To Active: " + username);
+                resolve(true);
+            } else {
+                Log('INFO', "User does not exist");
+                resolve(false);
+            }
+            if(err){
+                reject(Error(8, err));
+            }
+        })
+    })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // get users preferences

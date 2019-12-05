@@ -234,7 +234,7 @@ async function ValidateAccessToken(username, access_token){
             return reject(false);
         }
 
-        if(!datetime.CheckDateTimeout(used_date)){
+        if(datetime.CheckTokenDateTimeout(used_date)){
             return reject(false)
             Log('INFO', "Users access token has timed out: " + used_date);
         }

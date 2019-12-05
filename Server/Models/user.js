@@ -80,6 +80,10 @@ const userSchema = new Schema({
       type: Number,
       default: null
   },
+  active_search : {
+      type: Boolean,
+      default: false
+  },
   soft_delete : {
       type: Boolean,
       default: false
