@@ -74,8 +74,6 @@ module.exports = {
     }
 };
 
-
-
 function GetActivePlayers(){
     return new Promise((resolve, reject) => {
         User.find({active_search: true}, function(err, users){
@@ -111,22 +109,16 @@ function SetActivePlayer(username){
     })
 }
 
+function CreateListOfCompatiblePlayers(preferences list_of_active_players){
+
+    let device_filtered_list = list_of_active_players.filter(player => utils.ArrayValidator(player.device, preferences.device))
+    let systems_filtered_list = device_filtered_list.filter(player => utils.ArrayValidator(player.systems, preferences.systems))
+    let party_size_filtered_list = systems_filtered_list.filter(player => utils.ArrayValidator(player.party_size, preferences.party_size))
+    let days_available_filtered_list = party_size_filtered_list.filter(player => utils.ArrayValidator(player.days_available, preferences.days_available))
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+}
 
 // get users preferences
 

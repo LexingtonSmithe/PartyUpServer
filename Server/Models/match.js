@@ -1,26 +1,38 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const playerSchema = new Schema({
-    username: String,
-    last_search: String,
-    something: String,
-    something: String
-})
-
 const matchSchema = new Schema({
     match_id: String,
     dm: {
         username: String,
         age: Number
-
     },
-    players: [playerSchema],
-    party_size : String,
-    age : String,
-    days_free : String,
-    times_free_start : String,
-    times_free_end : String,
+    players: [{
+        username: String,
+        something: String
+    }],
+    party_size : [String],
+    age : {
+        min_age : {
+            type: Number,
+            default: null
+        },
+        max_age : {
+            type: Number,
+            default: null
+        }
+    },
+    days_free : [String],
+    time_available : {
+        start : {
+            type: String,
+            default: null
+        },
+        end : {
+            type: String,
+            default: null
+        }
+    },
     distance: Number
 });
 
