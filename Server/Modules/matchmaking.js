@@ -13,8 +13,12 @@ const Error = utils.Error;
 // local
 module.exports = {
     GetMatches : async function(req, res){
+
+        await GetActivePlayers().then((list_of_players) => {
+            CreateListOfCompatiblePlayers()
+        })
         try {
-            let list_of_players = await GetActivePlayers();
+            let list_of_players = await GetActivePlayers().then();
             if(list_of_players){
                 return res.json({
                     "status": "Success",
@@ -109,7 +113,7 @@ function SetActivePlayer(username){
     })
 }
 
-function CreateListOfCompatiblePlayers(preferences list_of_active_players){
+function CreateListOfCompatiblePlayers(preferences, list_of_active_players){
 
     let device_filtered_list = list_of_active_players.filter(player => utils.ArrayValidator(player.device, preferences.device))
     let systems_filtered_list = device_filtered_list.filter(player => utils.ArrayValidator(player.systems, preferences.systems))
@@ -119,6 +123,7 @@ function CreateListOfCompatiblePlayers(preferences list_of_active_players){
 
 
 }
+
 
 // get users preferences
 

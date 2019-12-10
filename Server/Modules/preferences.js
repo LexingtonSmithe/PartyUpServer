@@ -10,24 +10,22 @@ const defaultPreferencesList = require('../Data/preferences');
 
 // local
 module.exports = {
-    GetUserPreferences: function(username) {
-        Log('INFO', "Retrieving for preferences for user: " + username);
-        return new Promise((resolve, reject) => {
-            let query = Preferences.where({
-                username: username
+    GetUserPreferences: async function(req, res) {
+        let preferences = {}
+
+        try {
+            preferences = await RetrieveUserPreferences(req.headers.username);
+        }
+        catch(error){
+            res.status(500).json({
+                "status": "Error",
+                "error": Error(3, error)
             })
-            query.findOne(function(err, response) {
-                if (response != null) {
-                    Log('INFO', "Preferences Found");
-                    resolve(response)
-                } else {
-                    Log('INFO', "No Preferences Found");
-                    resolve(false);
-                }
-                if (err) {
-                    reject(Error(8, err));
-                }
-            })
+        }
+
+        res.json({
+            "status": "Success",
+            "data": CleanPreferencesResponse(preferences)
         })
     },
 
@@ -48,7 +46,7 @@ module.exports = {
     },
 
     GetPreferencesList: async function(req, res) {
-        await this.GetUserPreferences(req.headers.username)
+        await RetrieveUserPreferences(req.headers.username)
             .then((preferences) => {
                 let message = "Users default preferences not found";
                 let preferencesList = defaultPreferencesList;
@@ -96,7 +94,7 @@ module.exports = {
 
         var preferences_exist = false
         try {
-            preferences_exist = await this.GetUserPreferences(req.headers.username);
+            preferences_exist = await RetrieveUserPreferences(req.body.username);
         }
         catch(error){
             return res.status(500).json({
@@ -104,11 +102,10 @@ module.exports = {
                 "error": Error(3)
             })
         }
+
         if(preferences_exist){
-
-
             try {
-                let updated_preferences = await UpdatePreferences(req.headers.username, req.body)
+                let updated_preferences = await UpdatePreferences(req.body.username, req.body)
                 if(updated_preferences){
                     res.json({
                         "status": "Success",
@@ -124,7 +121,7 @@ module.exports = {
             }
         } else {
             try {
-                let saved_preferences = await SavePreferences(req.headers.username, req.body);
+                let saved_preferences = await SavePreferences(req.body.username, req.body);
                 if(saved_preferences){
                     res.json({
                         "status": "Success",
@@ -142,6 +139,7 @@ module.exports = {
     },
 
     ValidatePreferences : function(data){
+        Log('INFO', "Checking Validation Rules" + JSON.stringify(data, 0, 4))
         let result = {};
 
         if(!utils.DataValidator(data.systems, 'array', 1)){
@@ -152,7 +150,8 @@ module.exports = {
             return result = GetValidationError(2);
         }
 
-        if(!utils.DataValidator(data.role, 'string', 2, 6) || !defaultPreferencesList.role.options.includes(data.role)){
+        if(!utils.DataValidator(data.role, 'array', 1, 3)){
+            console.log(data.role);
             return result = GetValidationError(3);
         }
 
@@ -196,6 +195,10 @@ module.exports = {
             return result = GetValidationError(2);
         }
 
+        if(!utils.ArrayValidator(data.role, 'string', defaultPreferencesList.role.options)){
+            return result = GetValidationError(3);
+        }
+
         if(!utils.ArrayValidator(data.party_size, 'number', defaultPreferencesList.party_size.options)){
             return result = GetValidationError(4);
         }
@@ -210,10 +213,38 @@ module.exports = {
 
 };
 
-function SavePreferences(data) {
-    Log('INFO', "Saving preferences");
+function RetrieveUserPreferences(username) {
+    Log('INFO', "Retrieving for preferences for user: " + username);
     return new Promise((resolve, reject) => {
-        let preferences = MapPreferenceDataFromRequest(data, true);
+        let query = Preferences.where({
+            username: username
+        })
+        query.findOne(function(err, response) {
+            if (response != null) {
+                Log('INFO', "Preferences Found");
+                resolve(response)
+            } else {
+                Log('INFO', "No Preferences Found");
+                resolve(false);
+            }
+            if (err) {
+                reject(Error(8, err));
+            }
+        })
+    })
+}
+
+function SavePreferences(username, data) {
+    // Log('INFO', "Saving preferences\n" + JSON.stringify(data, 0, 4));
+    return new Promise((resolve, reject) => {
+        try
+        {
+            let preferences = MapPreferenceDataFromRequest(username, data, true);
+        }
+        catch(error){
+            reject(error);
+        }
+
         preferences.save(function(err) {
             if(!err) {
                 Log('INFO', "Preferences saved successfully");
@@ -225,11 +256,11 @@ function SavePreferences(data) {
     })
 }
 
-function UpdatePreferences(data) {
+function UpdatePreferences(username, data) {
     Log('INFO', "Updating preferences");
     return new Promise((resolve, reject) => {
-        let preferences = MapPreferenceDataFromRequest(data, false);
-        Preferences.findOneAndUpdate( {username: data.username}, preferences, function(err) {
+        let preferences = MapPreferenceDataFromRequest(username, data, false);
+        Preferences.findOneAndUpdate( {username: username}, preferences, function(err) {
             if(!err) {
                 Log('INFO', "Preferences updated successfully");
                 resolve(true);
@@ -313,22 +344,37 @@ function GetValidationError(id){
     return errors[id];
 };
 
-function MapPreferenceDataFromRequest(data, new_preferences){
-    Log('INFO', "Mapping User Data From Request, new_preferences: " + new_preferences);
+function MapPreferenceDataFromRequest(username, data, new_preferences){
+
     if(new_preferences){
+        Log('INFO', "Mapping New Preferences");
         preferences = new Preferences();
     } else {
+        Log('INFO', "Mapping Preferences");
         preferences = {}
     }
-    preferences.username = data.username;
+    preferences.username = username;
     preferences.systems = data.systems;
     preferences.device = data.device;
     preferences.role = data.role;
     preferences.party_size = data.party_size;
     preferences.age = data.age;
-    preferences.days_free = data.days_free;
-    preferences.times_free = data.times_free;
+    preferences.days_available = data.days_available;
+    preferences.time_available = data.time_available;
     preferences.distance = data.distance;
-
+    // Log('INFO', "Mapping Preferences Complete:\n" + JSON.stringify(preferences, 0, 4))
     return preferences;
 };
+
+function CleanPreferencesResponse(data){
+    let preferences = {}
+    preferences.systems = data.systems;
+    preferences.device = data.device;
+    preferences.role = data.role;
+    preferences.party_size = data.party_size;
+    preferences.age = data.age;
+    preferences.days_available = data.days_available;
+    preferences.time_available = data.time_available;
+    preferences.distance = data.distance;
+    return preferences;
+}

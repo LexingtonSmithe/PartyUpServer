@@ -6,7 +6,788 @@
 	},
 	"item": [
 		{
+			"name": "Create Test Data",
+			"item": [
+				{
+					"name": "User Creation",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "288802c7-0f0b-41e1-a41b-724b5df8bc9c",
+								"exec": [
+									"// runner only",
+									"",
+									"function makeid(length) {",
+									"   var result           = '';",
+									"   var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';",
+									"   var charactersLength = characters.length;",
+									"   for ( var i = 0; i < length; i++ ) {",
+									"      result += characters.charAt(Math.floor(Math.random() * charactersLength));",
+									"   }",
+									"   return result;",
+									"}",
+									"",
+									"let random_thing = makeid(10);",
+									"",
+									"pm.environment.set(\"username\", random_thing);",
+									"pm.environment.set(\"password\", random_thing);"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "544b4925-0d52-4c9a-8c4a-bb8e760a5d59",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\" : \"{{username}}\",\n  \"password\" : \"{{password}}\",\n  \"display_name\" : \"Lexington\",\n  \"bio\": \"Hi, my name is Bob and I would like to play Cleric. I've never played DnD before, but I've watched every episode of Critical Role\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Smith\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"01611234567\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n} ",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "306a5d4b-67a8-4959-bb30-7c19f7e7f1e9",
+								"exec": [
+									"let response = pm.response.json(); ",
+									"pm.environment.set(\"access_token\", response.access_token);",
+									"",
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\" : \"{{username}}\",\n  \"password\" : \"{{password}}\"\n} "
+						},
+						"url": {
+							"raw": "{{url}}/auth/login",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Preferences",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "3b58a81d-fd5f-41fd-a974-6e8677b66096",
+								"exec": [
+									"var systems = [\r",
+									"            \"DnD 5e\"\r",
+									"        ]\r",
+									"        \r",
+									"var device = [\r",
+									"            \"Any\",\r",
+									"            \"IRL\",\r",
+									"            \"Discord\",\r",
+									"            \"Roll20\",\r",
+									"            \"TTS\"\r",
+									"        ]\r",
+									"        \r",
+									"var role = [\r",
+									"            \"Any\",\r",
+									"            \"DM\",\r",
+									"            \"Player\"\r",
+									"        ]      \r",
+									"        \r",
+									"var party_size = [\r",
+									"            3,\r",
+									"            4,\r",
+									"            5,\r",
+									"            6,\r",
+									"            7,\r",
+									"            8\r",
+									"        ]    \r",
+									"        \r",
+									"var days_available = [\r",
+									"            \"Monday\",\r",
+									"            \"Tuesday\",\r",
+									"            \"Wednesday\",\r",
+									"            \"Thursday\",\r",
+									"            \"Friday\",\r",
+									"            \"Saturday\",\r",
+									"            \"Sunday\"\r",
+									"        ]\r",
+									"        \r",
+									"var distance = [\r",
+									"            5,\r",
+									"            10,\r",
+									"            15,\r",
+									"            20,\r",
+									"            50,\r",
+									"            100\r",
+									"        ]\r",
+									"        \r",
+									"systems = _.shuffle(systems);\r",
+									"device = _.shuffle(device);\r",
+									"role = _.shuffle(role);\r",
+									"party_size = _.shuffle(party_size);\r",
+									"days_available = _.shuffle(days_available);\r",
+									"distance = _.shuffle(distance);\r",
+									"        \r",
+									"pm.environment.set(\"systems\", JSON.stringify(systems.slice(_.random(0,0))))\r",
+									"pm.environment.set(\"device\", JSON.stringify(device.slice(_.random(0,device.length-1))))\r",
+									"pm.environment.set(\"role\", JSON.stringify(role.slice(_.random(0,1))))\r",
+									"pm.environment.set(\"party_size\", JSON.stringify(party_size.slice(party_size.length-1)))\r",
+									"pm.environment.set(\"days_available\", JSON.stringify(days_available.slice(_.random(3,5))))\r",
+									"pm.environment.set(\"distance\", JSON.stringify(distance[0]))"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "306e573d-632d-40dd-99ab-fd387ff42505",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "username",
+								"value": "{{username}}",
+								"type": "text"
+							},
+							{
+								"key": "access_token",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\t\r\n\t\"username\": \"{{username}}\",\r\n\t\"systems\": {{systems}},\r\n\t\"device\": {{device}},\r\n\t\"role\": {{role}},\r\n\t\"party_size\": {{party_size}},\r\n\t\"age\": {\r\n        \"min_age\" : 25,\r\n        \"max_age\" : 45\r\n    },\r\n\t\"days_available\":{{days_available}},\r\n\t\"time_available\":{\r\n        \"start\" : \"16:00\",\r\n        \"end\" : \"20:00\"\r\n    },\r\n\t\"distance\": {{distance}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/preferences",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"preferences"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Search - Set Active",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "3ac8c58f-36e0-4154-b65c-3030361dcfcb",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "username",
+								"type": "text",
+								"value": "{{username}}"
+							},
+							{
+								"key": "access_token",
+								"type": "text",
+								"value": "{{access_token}}"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/matches/search",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"matches",
+								"search"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "User",
+			"item": [
+				{
+					"name": "User",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "288802c7-0f0b-41e1-a41b-724b5df8bc9c",
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "8fb585ef-761c-4523-bcb2-d75a4a65f710",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\" : \"{{username}}\",\n  \"password\" : \"{{password}}\",\n  \"display_name\" : \"Lexington\",\n  \"bio\": \"Hi, my name is Bob and I would like to play Cleric. I've never played DnD before, but I've watched every episode of Critical Role\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Smith\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"01611234567\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "6b317f9d-8e8f-4eef-991a-ad640f72e39e",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "username",
+								"value": "{{username}}",
+								"type": "text"
+							},
+							{
+								"key": "access_token",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/user/profile",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"profile"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Users Profile",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a083c2a9-ade9-4716-815f-e910021abd06",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "username",
+								"value": "{{username}}",
+								"type": "text"
+							},
+							{
+								"key": "access_token",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/user/profile/Lex",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"profile",
+								"Lex"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User - Update",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "e7537286-cb34-43eb-b3c8-6cc93d8f4be5",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "username",
+								"value": "{{username}}",
+								"type": "text"
+							},
+							{
+								"key": "access_token",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"username\" : \"{{username}}\",\n  \"display_name\" : \"Lexington Smithe\",\n  \"password\" : \"{{password}}\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Brown\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"String\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/user/update",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"update"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "c26d5075-4644-4c59-9c6b-6cefa35f7651",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "username",
+								"value": "{{username}}",
+								"type": "text"
+							},
+							{
+								"key": "access_token",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/user/delete",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"user",
+								"delete"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
+			"name": "Preferences",
+			"item": [
+				{
+					"name": "Preferences List",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "7a28605a-0678-4b04-ad2f-7a4a525fdb8e",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/preferences/list/Lex",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"preferences",
+								"list",
+								"Lex"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Preferences",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "3b58a81d-fd5f-41fd-a974-6e8677b66096",
+								"exec": [
+									"var systems = [\r",
+									"            \"DnD 5e\"\r",
+									"        ]\r",
+									"        \r",
+									"var device = [\r",
+									"            \"Any\",\r",
+									"            \"IRL\",\r",
+									"            \"Discord\",\r",
+									"            \"Roll20\",\r",
+									"            \"TTS\"\r",
+									"        ]\r",
+									"        \r",
+									"var role = [\r",
+									"            \"Any\",\r",
+									"            \"DM\",\r",
+									"            \"Player\"\r",
+									"        ]      \r",
+									"        \r",
+									"var party_size = [\r",
+									"            3,\r",
+									"            4,\r",
+									"            5,\r",
+									"            6,\r",
+									"            7,\r",
+									"            8\r",
+									"        ]    \r",
+									"        \r",
+									"var days_available = [\r",
+									"            \"Monday\",\r",
+									"            \"Tuesday\",\r",
+									"            \"Wednesday\",\r",
+									"            \"Thursday\",\r",
+									"            \"Friday\",\r",
+									"            \"Saturday\",\r",
+									"            \"Sunday\"\r",
+									"        ]\r",
+									"        \r",
+									"var distance = [\r",
+									"            5,\r",
+									"            10,\r",
+									"            15,\r",
+									"            20,\r",
+									"            50,\r",
+									"            100\r",
+									"        ]\r",
+									"        \r",
+									"systems = _.shuffle(systems);\r",
+									"device = _.shuffle(device);\r",
+									"role = _.shuffle(role);\r",
+									"party_size = _.shuffle(party_size);\r",
+									"days_available = _.shuffle(days_available);\r",
+									"distance = _.shuffle(distance);\r",
+									"        \r",
+									"pm.environment.set(\"systems\", JSON.stringify(systems.slice(_.random(0,0))))\r",
+									"pm.environment.set(\"device\", JSON.stringify(device.slice(_.random(0,device.length-1))))\r",
+									"pm.environment.set(\"role\", JSON.stringify(role.slice(_.random(0,1))))\r",
+									"pm.environment.set(\"party_size\", JSON.stringify(party_size.slice(party_size.length-1)))\r",
+									"pm.environment.set(\"days_available\", JSON.stringify(days_available.slice(_.random(3,5))))\r",
+									"pm.environment.set(\"distance\", JSON.stringify(distance.slice(distance.length-1)))"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"id": "77dc743b-0f6f-437a-ba88-b255999cc166",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"name": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "username",
+								"value": "{{username}}",
+								"type": "text"
+							},
+							{
+								"key": "access_token",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\t\r\n\t\"username\": \"{{username}}\",\r\n\t\"systems\": {{systems}},\r\n\t\"device\": {{device}},\r\n\t\"role\": {{role}},\r\n\t\"party_size\": {{party_size}},\r\n\t\"age\": {\r\n        \"min_age\" : 25,\r\n        \"max_age\" : 45\r\n    },\r\n\t\"days_available\":{{days_available}},\r\n\t\"time_available\":{\r\n        \"start\" : \"16:00\",\r\n        \"end\" : \"20:00\"\r\n    },\r\n\t\"distance\": {{distance}}\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/preferences",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"preferences"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Preferences",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "a09cec36-04d6-4c9b-89d2-76cfb75cfaef",
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "username",
+								"value": "{{username}}",
+								"type": "text"
+							},
+							{
+								"key": "access_token",
+								"value": "{{access_token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/preferences",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"preferences"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"protocolProfileBehavior": {}
+		},
+		{
 			"name": "Health",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "b093dc7e-4f87-4f33-9918-82fcee5d4316",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [],
@@ -17,189 +798,6 @@
 					],
 					"path": [
 						"health"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "User",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"username\" : \"{{username}}\",\n  \"password\" : \"{{password}}\",\n  \"display_name\" : \"Lexington\",\n  \"bio\": \"Hi, my name is Bob and I would like to play Cleric. I've never played DnD before, but I've watched every episode of Critical Role\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Smith\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"01611234567\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{url}}/user",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"user"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "User",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "username",
-						"value": "{{username}}",
-						"type": "text"
-					},
-					{
-						"key": "access_token",
-						"value": "{{access_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{url}}/user/profile",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"user",
-						"profile"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Users Profile",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "username",
-						"value": "{{username}}",
-						"type": "text"
-					},
-					{
-						"key": "access_token",
-						"value": "{{access_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{url}}/user/profile/Lex",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"user",
-						"profile",
-						"Lex"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "User - Update",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "username",
-						"value": "{{username}}",
-						"type": "text"
-					},
-					{
-						"key": "access_token",
-						"value": "{{access_token}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n  \"username\" : \"{{username}}\",\n  \"display_name\" : \"Lexington Smithe\",\n  \"password\" : \"{{password}}\",\n  \"name\": {\n      \"first_name\" : \"Alex\",\n      \"last_name\" : \"Brown\"\n  },\n  \"contact\": {\n      \"email\" : \"lexington.smithe@gmail.com\",\n      \"telephone\" : \"String\"\n  },\n  \"date_of_birth\"  : \"01/01/1990\",\n  \"city\" : \"Manchester\",\n  \"country\" : \"UK\",\n  \"location\" : {\n      \"latitude\" : 53.480759,\n      \"longditude\" : -2.290126\n  }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{url}}/user/update",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"user",
-						"update"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "User",
-			"request": {
-				"method": "DELETE",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "username",
-						"value": "{{username}}",
-						"type": "text"
-					},
-					{
-						"key": "access_token",
-						"value": "{{access_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{url}}/user/delete",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"user",
-						"delete"
 					]
 				}
 			},
@@ -249,97 +847,21 @@
 			"response": []
 		},
 		{
-			"name": "Preferences",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "username",
-						"value": "{{username}}",
-						"type": "text"
-					},
-					{
-						"key": "access_token",
-						"value": "{{access_token}}",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\t\r\n\t\"username\": \"{{username}}\",\r\n\t\"systems\": [\r\n        \"DnD 5e\"\r\n    ],\r\n\t\"device\": [\r\n        \"IRL\"\r\n    ],\r\n\t\"role\": \"Player\",\r\n\t\"party_size\": [\r\n        5\r\n    ],\r\n\t\"age\": {\r\n        \"min_age\" : 25,\r\n        \"max_age\" : 45\r\n    },\r\n\t\"days_available\": [\r\n        \"Sunday\"\r\n    ],\r\n\t\"time_available\":{\r\n        \"start\" : \"16:00\",\r\n        \"end\" : \"20:00\"\r\n    },\r\n\t\"distance\": 5\r\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{url}}/preferences",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"preferences"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Preferences",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "username",
-						"value": "{{username}}",
-						"type": "text"
-					},
-					{
-						"key": "access_token",
-						"value": "{{access_token}}",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "{{url}}/preferences",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"preferences"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Preferences List",
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{url}}/preferences/list/Lex",
-					"host": [
-						"{{url}}"
-					],
-					"path": [
-						"preferences",
-						"list",
-						"Lex"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Search - Get Active TEMP",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "c0eba2fc-68a7-42af-b67e-0e61a8db1ee5",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "GET",
 				"header": [
@@ -374,15 +896,23 @@
 		},
 		{
 			"name": "Search - Set Active",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"id": "3ac8c58f-36e0-4154-b65c-3030361dcfcb",
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
 			"request": {
 				"method": "PUT",
 				"header": [
-					{
-						"key": "Content-Type",
-						"name": "Content-Type",
-						"type": "text",
-						"value": "application/json"
-					},
 					{
 						"key": "username",
 						"type": "text",

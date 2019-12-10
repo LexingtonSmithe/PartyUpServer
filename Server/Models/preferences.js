@@ -3,9 +3,9 @@ const Schema = mongoose.Schema;
 
 const preferencesSchema = new Schema({
     username: String,
-    systems: String,
+    systems: [String],
     device: [String],
-    role: String,
+    role: [String],
     party_size : [Number],
     age : {
         min_age : {

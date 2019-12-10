@@ -208,11 +208,11 @@ module.exports = {
     ValidateUser : function(data) {
         let result = {}
 
-        if(!utils.DataValidator(data.username, 'string', 3, 12)){
+        if(!utils.DataValidator(data.username, 'string', 3, 255)){
             return result = GetValidationError(1);
         }
 
-        if(!utils.DataValidator(data.password, 'string', 8, 15)){
+        if(!utils.DataValidator(data.password, 'string', 8, 255)){
             return result = GetValidationError(2);
         }
 

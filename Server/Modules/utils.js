@@ -50,9 +50,15 @@ exports = module.exports = {
 
     Error : function(error_code, data){
         var parsedData;
-        var that = this;
         if(typeof data === 'object'){
-            parsedData = JSON.stringify(data, 0, 4)
+            try
+                {
+                    parsedData = JSON.stringify(data, 0, 4)
+                }
+                catch(e)
+                {
+                    parsedData = "Circular object detected. Unable to log stack trace";
+                }
         } else {
             parsedData = data || "";
         }
