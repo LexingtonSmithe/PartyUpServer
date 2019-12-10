@@ -134,8 +134,8 @@ module.exports = {
     },
     // for anyone
     GetDisplayNameFromUsername : async function(username){
-        return new Promise(resolve, reject => ({
-            Log('INFO', "Retrieving Supplied Users Data");
+        return new Promise((resolve, reject) => {
+            Log('INFO', "Retrieving Supplied Users Data")
             User.findOne({username: username}, function(err, user){
                 if(!err){
                     Log('INFO', "User data found: " + username)
@@ -144,7 +144,7 @@ module.exports = {
                     reject(Error(8));
                 }
             })
-        }))
+        })
     },
 
     GetUserProfile : async function(req, res){
