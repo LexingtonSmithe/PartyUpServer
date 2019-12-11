@@ -8,28 +8,33 @@ config.logLevel = "ERROR";
 describe('Preferences Validation Tests', function() {
     function makeTestPreferences(){
         return  {
-        	"systems": [
+            "systems": [
                 "DnD 5e"
             ],
-        	"device": [
-                "IRL"
+            "device": [
+                "Roll20",
+                "Discord"
             ],
-        	"role": "Player",
-        	"party_size": [
+            "role": [
+                "Player"
+            ],
+            "party_size": [
                 5
             ],
-        	"age": {
-                "min_age" : 25,
-                "max_age" : 45
+            "age": {
+                "min_age": 25,
+                "max_age": 45
             },
-        	"days_available": [
-                "Sunday"
+        	"days_available":[
+                "Tuesday",
+                "Friday",
+                "Saturday"
             ],
         	"time_available":{
-                "start" : "16:00",
-                "end" : "20:00"
+                "start": "16:00",
+                "end": "20:00"
             },
-        	"distance": 5
+        	"distance": 50
         }
     }
 

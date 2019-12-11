@@ -5,6 +5,7 @@ const config = require('../../config.json');
 const errors = require('../Data/Errors');
 // local
 exports = module.exports = {
+
     GenerateUUID : function(){
         var uuid = uuidv1();
         return uuid;

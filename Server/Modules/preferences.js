@@ -12,9 +12,8 @@ const defaultPreferencesList = require('../Data/preferences');
 module.exports = {
     GetUserPreferences: async function(req, res) {
         let preferences = {}
-
         try {
-            preferences = await RetrieveUserPreferences(req.headers.username);
+            preferences = await this.RetrieveUserPreferences(req.headers.username);
         }
         catch(error){
             res.status(500).json({
@@ -22,7 +21,12 @@ module.exports = {
                 "error": Error(3, error)
             })
         }
-
+        if(!preferences){
+            res.status(500).json({
+                "status": "Error",
+                "error": Error(9)
+            })
+        }
         res.json({
             "status": "Success",
             "data": CleanPreferencesResponse(preferences)
@@ -57,9 +61,9 @@ module.exports = {
                     preferencesList.party_size.default = response.party_size;
                     preferencesList.min_age.default = response.age.min_age;
                     preferencesList.max_age.default = response.age.max_age;
-                    preferencesList.days_free.default = response.days_free;
-                    preferencesList.time_available_start.default = response.time_available.start;
-                    preferencesList.time_available_end.default = response.time_available.end;
+                    preferencesList.days_available.default = response.days_available;
+                    preferencesList.time_available.start.default = response.time_available.start;
+                    preferencesList.time_available.end.default = response.time_available.end;
                     preferencesList.distance.default = response.distance;
                     Log('INFO', "Adding Preset Preference Values");
                     message = "Users preferences added to default values"
@@ -79,7 +83,6 @@ module.exports = {
     },
 
     SubmitPreferences: async function(req, res){
-
         Log('INFO', "Validating Supplied Preferences Data");
         let validated_preferences = this.ValidatePreferences(req.body);
         if(validated_preferences.error){
@@ -94,7 +97,7 @@ module.exports = {
 
         var preferences_exist = false
         try {
-            preferences_exist = await RetrieveUserPreferences(req.body.username);
+            preferences_exist = await this.RetrieveUserPreferences(req.body.username);
         }
         catch(error){
             return res.status(500).json({
@@ -139,7 +142,8 @@ module.exports = {
     },
 
     ValidatePreferences : function(data){
-        Log('INFO', "Checking Validation Rules" + JSON.stringify(data, 0, 4))
+        //Log('INFO', "Checking Validation Rules" + JSON.stringify(data, 0, 4));
+        Log('INFO', "Checking Validation Rules");
         let result = {};
 
         if(!utils.DataValidator(data.systems, 'array', 1)){
@@ -209,33 +213,57 @@ module.exports = {
 
 
         return result = GetValidationError(0);
+    },
+
+    RetrieveUserPreferences: function(username) {
+        Log('INFO', "Retrieving for preferences for user: " + username);
+        return new Promise((resolve, reject) => {
+            let query = Preferences.where({
+                username: username
+            })
+            query.findOne(function(err, response) {
+                if (response != null) {
+                    Log('INFO', "Preferences Found");
+                    resolve(response)
+                } else {
+                    Log('INFO', "No Preferences Found");
+                    resolve(false);
+                }
+                if (err) {
+                    reject(Error(8, err));
+                }
+            })
+        })
+    },
+
+    GetListOfUserPreferences : function(array_of_usernames){
+        Log('INFO', "Retrieving " + array_of_usernames.length + " users preferences");
+        return new Promise((resolve, reject) => {
+            let query = {
+                username: {
+                    $in: array_of_usernames
+                }
+            }
+
+            Preferences.find(query, function(err, preferences) {
+                if(!err) {
+                    Log('INFO', "Preferences retrieved successfully");
+                    resolve(preferences);
+                } else {
+                    Log('ERROR', "Problem Occurred When Retrieving List Of User Preferences",  err);
+                    reject(false);
+                }
+            })
+        })
     }
 
 };
 
-function RetrieveUserPreferences(username) {
-    Log('INFO', "Retrieving for preferences for user: " + username);
-    return new Promise((resolve, reject) => {
-        let query = Preferences.where({
-            username: username
-        })
-        query.findOne(function(err, response) {
-            if (response != null) {
-                Log('INFO', "Preferences Found");
-                resolve(response)
-            } else {
-                Log('INFO', "No Preferences Found");
-                resolve(false);
-            }
-            if (err) {
-                reject(Error(8, err));
-            }
-        })
-    })
-}
+
 
 function SavePreferences(username, data) {
     // Log('INFO', "Saving preferences\n" + JSON.stringify(data, 0, 4));
+    Log('INFO', "Saving preferences for: " + username);
     return new Promise((resolve, reject) => {
         try
         {
@@ -250,6 +278,7 @@ function SavePreferences(username, data) {
                 Log('INFO', "Preferences saved successfully");
                 resolve(true);
             } else {
+                Log('ERROR', "Something went wrong while saving preferences", err);
                 reject(false);
             }
         })

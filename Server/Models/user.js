@@ -82,7 +82,7 @@ const userSchema = new Schema({
   },
   active_search : {
       type: Boolean,
-      default: false
+      default: true
   },
   soft_delete : {
       type: Boolean,

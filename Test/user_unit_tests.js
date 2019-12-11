@@ -46,7 +46,7 @@ describe('User Validation Tests', function() {
         user_data.username = "X";
         result = user.ValidateUser(user_data);
         expect(result.message).to.equal("Username supplied is either Invalid or Missing");
-
+        
         user_data.username = "abcdefghijklmnopqrstuvwxyz";
         result = user.ValidateUser(user_data);
         expect(result.message).to.equal("Username supplied is either Invalid or Missing");
