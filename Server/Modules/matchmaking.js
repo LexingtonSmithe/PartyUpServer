@@ -176,6 +176,18 @@ function CreateListOfCompatiblePlayers(preferences, list_of_preferences){
 
 }
 
+function ArrayComparison(value){
+    let array = []
+
+    for(let i = 0; i < array.length; i++){
+        if(!array_to_compare.includes(array[i])){
+            return false;
+            break;
+        }
+    }
+
+}
+
 function roughoutline() {
     // get users preferences
 
