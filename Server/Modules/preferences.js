@@ -50,7 +50,7 @@ module.exports = {
     },
 
     GetPreferencesList: async function(req, res) {
-        await RetrieveUserPreferences(req.headers.username)
+        await this.RetrieveUserPreferences(req.headers.username)
             .then((preferences) => {
                 let message = "Users default preferences not found";
                 let preferencesList = defaultPreferencesList;
@@ -62,8 +62,8 @@ module.exports = {
                     preferencesList.min_age.default = response.age.min_age;
                     preferencesList.max_age.default = response.age.max_age;
                     preferencesList.days_available.default = response.days_available;
-                    preferencesList.time_available.start.default = response.time_available.start;
-                    preferencesList.time_available.end.default = response.time_available.end;
+                    preferencesList.time_available_start.default = response.time_available.start;
+                    preferencesList.time_available_end.default = response.time_available.end;
                     preferencesList.distance.default = response.distance;
                     Log('INFO', "Adding Preset Preference Values");
                     message = "Users preferences added to default values"
@@ -229,7 +229,7 @@ module.exports = {
                     Log('INFO', "No Preferences Found");
                     resolve(false);
                 }
-                if (err) {
+                if(err) {
                     reject(Error(8, err));
                 }
             })
@@ -244,7 +244,6 @@ module.exports = {
                     $in: array_of_usernames
                 }
             }
-
             Preferences.find(query, function(err, preferences) {
                 if(!err) {
                     Log('INFO', "Preferences retrieved successfully");

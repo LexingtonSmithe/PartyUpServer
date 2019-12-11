@@ -66,7 +66,7 @@ module.exports = {
             });
         }
 
-        let players = CreateListOfCompatiblePlayers(requestor_preferences, list_of_active_player_preferences);
+        let players = await CreateListOfCompatiblePlayers(requestor_preferences, list_of_active_player_preferences);
 
         return res.json({
             "status": "Success",
@@ -154,38 +154,70 @@ function SetActivePlayer(username){
     })
 }
 
-function CreateListOfCompatiblePlayers(preferences, list_of_preferences){
+async function CreateListOfCompatiblePlayers(requestor_preferences, list_of_multiple_preferences){
     // Log('INFO', "Creating List Of Compatible Players From: " + JSON.stringify(preferences, 0, 4));
     // Log('INFO', "Example User: " + list_of_active_players[0])
 
-    let filtered_list = list_of_preferences
-    filtered_list = filtered_list
-        .filter(player => utils.ArrayValidator(player.device, preferences.device))
-    Log('INFO', "Filtering out device differences: " + filtered_list.length)
-    filtered_list = filtered_list
-        .filter(player => utils.ArrayValidator(player.systems, preferences.systems))
-    Log('INFO', "Filtering out systems differences: " + filtered_list.length)
-    filtered_list = filtered_list
-        .filter(player => utils.ArrayValidator(player.party_size, preferences.party_size))
-    Log('INFO', "Filtering out party_size differences: " + filtered_list.length)
-    filtered_list = filtered_list
-        .filter(player => utils.ArrayValidator(player.days_available, preferences.days_available))
-    Log('INFO', "Filtering out days_available differences: " + filtered_list.length)
+    Log('INFO', "Creating List Of Compatible Players");
 
+    let filtered_list = list_of_multiple_preferences;
+    Log('INFO', "Filtering out users with device differences: " + filtered_list.length)
+    filtered_list = await RemoveUsersFromPreferencesListWithNoMatchingPreferences('device', filtered_list, requestor_preferences.device)
+
+    Log('INFO', "Filtering out users with systems differences: " + filtered_list.length)
+    filtered_list = await RemoveUsersFromPreferencesListWithNoMatchingPreferences('systems', filtered_list, requestor_preferences.systems)
+
+    Log('INFO', "Filtering out users with party_size differences: " + filtered_list.length)
+    filtered_list = await RemoveUsersFromPreferencesListWithNoMatchingPreferences('party_size', filtered_list, requestor_preferences.party_size)
+
+    Log('INFO', "Filtering out users with days_available differences: " + filtered_list.length)
+    filtered_list = await RemoveUsersFromPreferencesListWithNoMatchingPreferences('days_available', filtered_list, requestor_preferences.days_available)
+
+    Log('INFO', "Final count of matches: " + filtered_list.length)
     return filtered_list;
 
 }
 
-function ArrayComparison(value){
-    let array = []
+function RemoveUsersFromPreferencesListWithNoMatchingPreferences(preference_key, array, comparison_array){
+    Log('INFO', "Comparing Values Against: " + comparison_array);
+    let resulting_array = [];
+    let users_removal_list = [];
 
-    for(let i = 0; i < array.length; i++){
-        if(!array_to_compare.includes(array[i])){
-            return false;
-            break;
+    for(var i = 0; i < array.length; i++){
+        //Log('INFO', "The Users " + preference_key + " Preferences: " + comparison_array);
+        //Log('INFO', array[i].username + " Preferences: " + array[i][preference_key]);
+
+        let preference_removal_list = [];
+
+        for(var j = 0; j < array[i][preference_key].length; j++){
+            if(!comparison_array.includes(array[i][preference_key][j])){
+                preference_removal_list.push(array[i][preference_key][j]);
+            }
+        }
+        if(preference_removal_list.length > 0){
+            //Log('INFO', "Removal List will remove: " + preference_removal_list + " from " + array[i][preference_key]);
+            for(let k = 0; k < preference_removal_list.length; k++){
+                array[i][preference_key].splice(array[i][preference_key].indexOf(preference_removal_list[k]), 1);
+            }
+        }
+        //Log('INFO', "Result for : " + array[i].username + " -> " + array[i][preference_key]);
+        if(!array[i][preference_key][0]){
+            // Log('INFO', "Adding User to users_removal_list: " + array[i].username );
+            users_removal_list.push(array[i].username)
+
         }
     }
-
+    if(users_removal_list.length > 0){
+        for(let x = 0; x < users_removal_list.length; x++){
+            //Log('INFO', "Removing User: " + users_removal_list[x]);
+            array = array.filter(function(obj){
+                return obj.username !== users_removal_list[x]
+            })
+        }
+    }
+    Log('INFO', "Players removed from results based on: " + preference_key + " : " + users_removal_list.length);
+    resulting_array = array;
+    return resulting_array;
 }
 
 function roughoutline() {
