@@ -183,11 +183,11 @@ module.exports = {
             return result = GetValidationError(9);
         }
 
-        if(!utils.DataValidator(data.time_available.start, 'string', 5, 5) || !defaultPreferencesList.time_available_start.options.includes(data.time_available.start)){
+        if(!utils.DataValidator(data.time_available.start, 'string', 5, 5) || !defaultPreferencesList.time_available.start.options.includes(data.time_available.start)){
             return result = GetValidationError(10);
         }
 
-        if(!utils.DataValidator(data.time_available.end, 'string', 5, 5) || !defaultPreferencesList.time_available_end.options.includes(data.time_available.end)){
+        if(!utils.DataValidator(data.time_available.end, 'string', 5, 5) || !defaultPreferencesList.time_available.end.options.includes(data.time_available.end)){
             return result = GetValidationError(11);
         }
         // only contains values that are in the range of possible options

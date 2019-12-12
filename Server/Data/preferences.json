@@ -119,7 +119,7 @@
             "Sunday"
         ]
     },
-    "times_available" :{
+    "time_available" :{
         "start": {
             "name": "Start Time",
             "type": "dropdown",
