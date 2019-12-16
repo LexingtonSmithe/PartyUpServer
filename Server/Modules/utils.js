@@ -19,32 +19,33 @@ exports = module.exports = {
         } else {
             parsedData = data || "";
         }
+        let now = Date.now()
         switch(config.logLevel){
 
             case "ALL":
-                console.log(level + ": " + message + '\n' + parsedData);
+                console.log(now + " : " + level + ": " + message + '\n' + parsedData);
             break;
 
             case "INFO":
                 if(level == "INFO"){
-                    console.log(level + ": " + message+ '\n', parsedData);
+                    console.log(now + " : " + level + ": " + message+ '\n', parsedData);
                 }
             break;
 
             case "WARN":
                 if(level == "WARN" || level == "ERROR"){
-                    console.log(level + ": " + message+ '\n', parsedData);
+                    console.log(now + " : " + level + ": " + message+ '\n', parsedData);
                 }
             break;
 
             case "ERROR":
                 if(level == "ERROR"){
-                    console.log(level + ": " + message+ '\n', parsedData);
+                    console.log(now + " : " + level + ": " + message+ '\n', parsedData);
                 }
             break;
 
             default:
-                console.log("Unknown Logging Level Supplied");
+                console.log(now + " : " + "Unknown Logging Level Supplied");
             break;
         }
     },
